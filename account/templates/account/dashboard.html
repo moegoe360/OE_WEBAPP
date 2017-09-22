@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+	<h1>Dashboard</h1>
+	<p>Welcome to your dashboard. You can {% if request.user.is_participant %}
+	<a href="{% url "account:edit" %}">edit your profile</a>
+		or {% endif %} <a href="{% url "password_change" %}">change your password</a>.</p>
+</div>
+{% endblock %}

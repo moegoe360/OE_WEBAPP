@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Remove your account{% endblock %}
+
+{% block content %}	
+		<!-- Do i need a form here? How can I replace with just buttons with the csrf tokens for safety? -->
+		
+		<form action="." method="post">
+		{% csrf_token %}
+		<h2>Would you like to remove your account but keep experimental data?</h2> <!-- Make this div as the title -->
+		<p>Removing your account will completely remove your profile but keep all experiment results to be used for 
+		future research papers for the benefit of humanity.</p>
+			
+		{% if 'remove1' in request.POST %}
+		<p class="text-danger"> Are you sure you would like to remove your account?</p>
+		<p><input type="submit" name="remove_profile" value="Remove my account but keep experimental data"></p>
+		{% else %}
+		<p><input type="submit" name="remove1" value="remove account"></p>
+		{% endif %}
+		
+		<h2>Would you like to completely remove your account and all your data?</h2> <!-- Make this div as the title -->
+		<p>This will allow you to completely remove your profile and all your experimental data, but experimental data that 
+		has been published already cannot be removed from the published papers.</p>
+		{% if 'remove2' in request.POST %}
+		<p class="text-danger"> Are you sure you would like to remove your account and all the data?</p>
+		<p><input type="submit" name="remove_all" value="Remove my account and all data"></p>
+		{% else %}
+		<p><input type="submit" name="remove2" value="remove account"></p>
+		{% endif %}
+
+		<!--  <button class="btn btn-primary btn-block">Remove Account but keep experimental data</button> -->
+		<!--  <button class="btn btn-danger btn-block">Remove Account and remove all experimental data</button> -->
+{% endblock %}
+	

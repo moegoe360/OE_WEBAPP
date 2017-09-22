@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %} Experiment Detail View {% endblock %}
+
+{% block content %}
+<div class="container">
+	<h1>Detail View of Experiment</h1>
+	<p>Name: {{ experiment.name }} </p>
+	<p>Owner: {{ experiment.owner }} </p>
+	<p>Description: {{ experiment.description }} </p>
+	<p>Location of file: {{ experiment.file }} </p>
+	
+	<div class="container">
+	<p><a href="{% url 'experiment:exp_update' pk=experiment.pk %}" class="btn btn-warning">Update</a></p>
+	<p><a href="{% url 'experiment:exp_delete' pk=experiment.pk %}" class="btn btn-danger">Delete</a></p>
+	</div>
+</div>
+{% endblock %}

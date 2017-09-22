@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% load bootstrap3 %}
+{% block title %}Create an account{% endblock %}
+
+{% block content %}
+<div class="container">
+	<h1>Create a 
+		{% if request.path == "/account/register/" %}
+		Participant Account
+		{% else %}
+		Researcher Account
+		{% endif %}	
+	</h1>
+	<p>Please, sign up using the following form:</p>
+	<form method="post">
+		{% csrf_token %}
+		{% bootstrap_form form %}
+		<input type="submit" class='btn btn-default' value="Create my account">
+	</form>
+</div>
+{% endblock %}

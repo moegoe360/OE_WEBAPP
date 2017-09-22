@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Experiment View{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="container">
+<script type="text/javascript" src="{% static '/js/table.js' %}"></script>
+	<h1>My Experiment List</h1>
+	{% if not experiments %}
+		<p>There are no experiments, please upload an experiment</p>
+
+	{% endif %}
+		<p>Upload an experiment?</p>
+		<p><a href="{% url 'experiment:exp_create' %}" class="btn btn-primary">Upload</a></p>
+		
+			{% if experiments %}
+				<div class="container">
+					  <table id='tb1' class="table table-bordered table-hover">
+						<thead>
+						<tr>
+							<th>Experiment Name</th>
+							<th>Created By</th>
+							<th>Experiment Description</th>
+						</tr>
+						</thead>
+						<tbody>
+						{% for experiment in request.user.experiments.all %}
+						<tr onclick="location.href='{{ experiment.id }}';">
+							<td >{{ experiment.name }}</td>
+							<td >{{ experiment.created_By }}</td>
+							<td >{{ experiment.description }}</td>
+						</tr>
+						{% endfor%}
+						</tbody>
+					</table>
+				</div>
+			{% endif %}
+</div>
+{% endblock %}

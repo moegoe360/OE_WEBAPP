@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Experiment Public View{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="container">
+<script type="text/javascript" src="{% static '/js/table.js' %}"></script>
+	<h1>Experiment List</h1>
+		
+			{% if experiments %}
+				<div class="container">
+					  <table id='tb1' class="table table-bordered table-hover">
+						<thead>
+						<tr>
+							<th>Experiment Name</th>
+							<th>Experiment Description</th>
+						</tr>
+						</thead>
+						<tbody>
+						{% for experiment in experiments %}
+						<tr onclick="location.href='{{ experiment.id }}';">
+							<td >{{ experiment.name }}</td>
+							<td >{{ experiment.description }}</td>
+						</tr>
+						{% endfor%}
+						</tbody>
+					</table>
+				</div>
+			{% endif %}
+</div>
+{% endblock %}

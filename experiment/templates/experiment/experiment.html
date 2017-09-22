@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %} Experiment{% endblock %}
+{% block extraSrc %} {{ experiment.js_Code_Header|safe|escape }} {% endblock %}
+{% block content %}
+<div class="container" id="exam">
+	<h1>{{ experiment.name }}</h1>
+	<p style="text-align: center;">Before starting the experiment you must go fullscreen</p>
+	<p style="text-align: center;"> <input class="btn btn-primary" value="Go Fullscreen" onclick="toggleFullScreen(document.body)"></p>
+	<div class="bg-primary" style="height:250px;">
+	<canvas id="canvas"></canvas>
+	</div>
+	<script>{{experiment.js_Code|safe|escape}}</script>
+	
+</div>
+{% endblock %}
