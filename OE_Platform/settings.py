@@ -39,8 +39,8 @@ AUTHENTICATION_BACKENDS = (
 # Application definition
 
 INSTALLED_APPS = [
-
-    'django.contrib.admin',
+    'account',
+    
     'django.contrib.auth',
 
     'django.contrib.contenttypes',
@@ -49,11 +49,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'bootstrap3',
     'experiment',
-    'account',
+    'django.contrib.admin',
+    
  #   'django_cleanup', #used to delete files when model is deleted
     ]
 
-MIDDLEWARE = [  #Handles in-between requests from server-client side
+MIDDLEWARE_CLASSES = [  #Handles in-between requests from server-client side
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',  #handles the current session across requests
     'django.middleware.common.CommonMiddleware',
@@ -140,6 +141,6 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
     ]
-
+REDIRECT_FIELD_NAME = reverse_lazy('account:dashboard')
 LOGIN_REDIRECT_URL = reverse_lazy('account:dashboard')
-#LOGOUT_REDIRECT_URL = reverse_lazy('account:logout')
+LOGOUT_REDIRECT_URL = reverse_lazy('account:logout')

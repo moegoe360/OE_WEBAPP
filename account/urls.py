@@ -1,14 +1,14 @@
 from django.conf.urls import url
-#from django.contrib.auth import views as auth_views
+from django.contrib.auth import views as auth_old_views
 from OE_Platform import views as auth_views
 from . import views 
 
 app_name = "account"
 
 urlpatterns = [
-     url(r'^$', views.DashboardView.as_view(), name='dashboard'),
-     url(r'^login/$', auth_views.LoginView.as_view(template_name='account/login.html'), name='login'),
-     url(r'^logout/$', auth_views.LogoutView.as_view(template_name='account/logged_out.html'), name='logout'),    
+     url(r'^$', views.dashboard, name='dashboard'),
+     #url(r'^login/$', views.Login(template_name='account/login.html'), name='login'),
+     #url(r'^logout/$', auth_views.LogoutView.as_view(template_name='account/logged_out.html'), name='logout'),    
      url(r'^register/$', views.RegisterAccount.as_view(), name='register'),
      url(r'^register_done/$', views.RegisterAccountDoneView.as_view(), name='register_done'),
 #These following URLs will allow us to change passwords
@@ -25,13 +25,20 @@ urlpatterns = [
      url(r'^researcher/register/$', views.RegisterAccount.as_view(), name='reseacher_register'),
      
     
-     url(r'^edit/$', views.AccountUpdateView.as_view(), name='edit'),
+     #url(r'^edit/$', views.AccountUpdateView.as_view(), name='edit'),
+     #url(r'^login/$', views.user_login, name='login'),
+     url(r'^login/$', auth_old_views.login,{'template_name': 'account/login.html'}, name='login'),
+     url(r'^logout/$', auth_old_views.logout, {'template_name': 'account/logged_out.html'}, name='logout'),
+    # url(r'^logout-then-login/$', auth_views.logout_then_login, name='logout_then_login'),
+    
+    
+    url(r'^edit/$', views.edit, name='edit'),
+    url(r'^user_remove/$', views.accountRemoval, name='account_remove'),
     ]
 
 
 # OBSOLETE CODE 
-#     url(r'^logout/$', auth_views.logout, name='logout'),
-#     url(r'^logout-then-login/$', auth_views.logout_then_login, name='logout_then_login'),
+
 #     #These following URLs will allow us to change passwords
 #     url(r'^password-change/$', auth_views.password_change, name='password_change'),
 #     url(r'^password-change/done/$', auth_views.password_change_done, name='password_change_done'),
@@ -46,8 +53,8 @@ urlpatterns = [
 #     url(r'^register/$', views.register, name='register'),
 
 #     
-#     url(r'^edit/$', views.edit, name='edit'),
-#     url(r'^user_remove/$', views.accountRemoval, name='account_remove'),
+    
+     
 #     
 #     #Researcher URLS
 #         #Create Account

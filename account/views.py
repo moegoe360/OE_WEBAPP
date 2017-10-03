@@ -1,7 +1,6 @@
 from django.http import HttpResponse
 # from django.contrib.auth.views import LoginView
-
-# from django.shortcuts import render
+from django.shortcuts import render
 from . import forms
 # import datetime
 from django.contrib import messages
@@ -16,14 +15,10 @@ from django.http import Http404
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-# from django.contrib.auth import authenticate, get_user, login
+from django.contrib.auth import authenticate, get_user, login
 from django.views import generic
 
-# class UserLoginView(LoginView):
-#     template_name = 'account/login.html'
 
-class DashboardView(generic.TemplateView):
-    template_name = 'account/dashboard.html'
  
 class RegisterAccount(generic.CreateView):
      form_class = forms.UserCreateForm
@@ -52,30 +47,86 @@ class RegisterAccount(generic.CreateView):
 class RegisterAccountDoneView(generic.TemplateView):
      template_name = 'account/registration/register_done.html'
  
-class AccountUpdateView(generic.UpdateView):
-        #model = Profile
-        model = User
-        form_class = forms.ProfileEditForm
-        second_form_class = forms.UserEditForm
-        #second_form_class = forms.UserEditForm
-        template_name = 'account/edit.html'
+
+
+class LoggedOutView(generic.TemplateView):
+     template_name = 'account/logged_out.html'
+     
+@login_required
+def dashboard(request): 
+     return render(request, 'account/dashboard.html', {'section': 'dashboard'})
+ 
+@login_required
+def edit(request):
+    if request.method == 'POST':
+        user_form = forms.UserEditForm(instance=request.user, data=request.POST)
+        profile_form = forms.ProfileEditForm(instance=request.user.profile, data=request.POST)
          
-        def get_success_url(self):
-            return reverse_lazy('account:edit')
+        if not (user_form.has_changed() or profile_form.has_changed()): 
+            messages.info(request, 'There was no changes done on the profile ')
+        elif user_form.is_valid() and profile_form.is_valid():  
+            #To do-> Add code that checks date and compares it to age, give an error if they dont match
+            user_form.save()
+            profile_form.save()
+            messages.success(request, 'Profile updated successfuly')
+         #if not user_form.data['date_of_birth']:
+          #      born = user_form.data['date_of_birth']
+           #     today = datetime.datetime.now()
+            #    get_user(request).Profile.age = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+          
+        else:
+            messages.error(request, 'Error updating your profile')
+    else:
+        user_form = forms.UserEditForm(instance=request.user)
+        profile_form = forms.ProfileEditForm(instance=request.user.profile)
+     
+    return render(request, 'account/edit.html', {'user_form': user_form, 'profile_form': profile_form})
  
-#         def get_context_data(self, **kwargs):
-#             context = super(AccountUpdateView, self).get_context_data(**kwargs)
-#             context['second_model'] = SecondModel.objects.get(id=1) #whatever you would like
-# #             return context
+@login_required
+def accountRemoval(request):
+    if 'remove_profile' in request.POST:
+       # messages.info(request, 'You clicked button 1')
+       pass
+    elif 'remove_all' in request.POST:
+       # messages.info(request, 'You clicked button 2')
+       instance = get_user(request)
+       instance.delete()
+       return render(request, 'logged_out.html')
+         
+    return render(request, 'account/account_remove.html')
  
-#         def get(self, request, *args, **kwargs):
-#             super(AccountUpdateView, self).get(request, *args, **kwargs)
-#             form = self.form_class
-#             form1 = self.second_form_class
-#             return self.render_to_response(self.get_context_data(object=self.object, form=form, form1=form1))
+ #CODE USED FOR DJANGO 2.11 - cannot use because needed to downgrade code
  
-        def get_object(self):
-            return self.request.user.profile
+ # class UserLoginView(LoginView):
+#     template_name = 'account/login.html'
+
+# class DashboardView(generic.TemplateView):
+#     template_name = 'account/dashboard.html'
+
+# class AccountUpdateView(generic.UpdateView):
+#         #model = Profile
+#         model = User
+#         form_class = forms.ProfileEditForm
+#         second_form_class = forms.UserEditForm
+#         #second_form_class = forms.UserEditForm
+#         template_name = 'account/edit.html'
+#          
+#         def get_success_url(self):
+#             return reverse_lazy('account:edit')
+#  
+# #         def get_context_data(self, **kwargs):
+# #             context = super(AccountUpdateView, self).get_context_data(**kwargs)
+# #             context['second_model'] = SecondModel.objects.get(id=1) #whatever you would like
+# # #             return context
+#  
+# #         def get(self, request, *args, **kwargs):
+# #             super(AccountUpdateView, self).get(request, *args, **kwargs)
+# #             form = self.form_class
+# #             form1 = self.second_form_class
+# #             return self.render_to_response(self.get_context_data(object=self.object, form=form, form1=form1))
+#  
+#         def get_object(self):
+#             return self.request.user.profile
         
 #         def get_context_data(self, **kwargs):
 #              context = super(AccountUpdateView, self).get_context_data(**kwargs)
@@ -127,9 +178,11 @@ class AccountUpdateView(generic.UpdateView):
     
 # OBSOLETE CODE THAT WON'T BE USED DUE TO UPDATED DJANGO TO 1.11
 
+#Used a loginview premade by django auth
+
 # def user_login(request):
 #     if request.method == 'POST':
-#         form = LoginForm(request.POST)
+#         form = forms.LoginForm(request.POST)
 #         if form.is_valid():
 #                cd = form.cleaned_data #Normalizes the form to be outputted into python properly, ex. datetime.date
 #                user = authenticate(username=cd['username'],
@@ -137,21 +190,17 @@ class AccountUpdateView(generic.UpdateView):
 #                if user is not None:
 #                    if user.is_active:
 #                        login(request, user)
-#                        return HttpResponse('Authenticated '\
-#                                            'successfully')
-#                          
+#                        return render(request, 'account/dashboard.html')
+#                           
 #                    else:
 #                        return HttpResponse('Disabled account')  
 #                else:
 #                    return HttpResponse('Invalid login')
 #     else:
-#          form = LoginForm()
+#          form = forms.LoginForm()
 #     return render(request, 'account/login.html', {'form': form})
-# 
-# @login_required
-# def dashboard(request): 
-#     return render(request, 'account/dashboard.html', {'section': 'dashboard'})
 
+# USED TEMPLATE VIEW INSTEAD
 # def register(request):
 #     if request.method == 'POST':
 #         user_form = UserRegistrationForm(request.POST)
@@ -177,42 +226,7 @@ class AccountUpdateView(generic.UpdateView):
 #         user_form = UserRegistrationForm()
 #     return render(request, 'account/register.html', {'user_form': user_form})
 
-# @login_required
-# def edit(request):
-#     if request.method == 'POST':
-#         user_form = UserEditForm(instance=request.user, data=request.POST)
-#         profile_form = ProfileEditForm(instance=request.user.profile, data=request.POST)
-#         
-#         if not (user_form.has_changed() or profile_form.has_changed()): 
-#             messages.info(request, 'There was no changes done on the profile ')
-#         elif user_form.is_valid() and profile_form.is_valid():  
-#             #To do-> Add code that checks date and compares it to age, give an error if they dont match
-#             user_form.save()
-#             profile_form.save()
-#             messages.success(request, 'Profile updated successfuly')
-#          #if not user_form.data['date_of_birth']:
-#           #      born = user_form.data['date_of_birth']
-#            #     today = datetime.datetime.now()
-#             #    get_user(request).Profile.age = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
-#          
-#         else:
-#             messages.error(request, 'Error updating your profile')
-#     else:
-#         user_form = UserEditForm(instance=request.user)
-#         profile_form = ProfileEditForm(instance=request.user.profile)
-#     
-#     return render(request, 'account/edit.html', {'user_form': user_form, 'profile_form': profile_form})
+
 # 
-# @login_required
-# def accountRemoval(request):
-#     if 'remove_profile' in request.POST:
-#        # messages.info(request, 'You clicked button 1')
-#        pass
-#     elif 'remove_all' in request.POST:
-#        # messages.info(request, 'You clicked button 2')
-#        instance = get_user(request)
-#        instance.delete()
-#        return render(request, 'registration/logged_out.html')
-#         
-#     return render(request, 'account/account_remove.html')
+
 #         

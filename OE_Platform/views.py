@@ -45,7 +45,6 @@ class SuccessURLAllowedHostsMixin:
         allowed_hosts.update(self.success_url_allowed_hosts)
         return allowed_hosts
 
-
 class LoginView(SuccessURLAllowedHostsMixin, FormView):
     """
     Display the login form and handle the login action.
@@ -87,6 +86,8 @@ class LoginView(SuccessURLAllowedHostsMixin, FormView):
             require_https=self.request.is_secure(),
         )
         return redirect_to if url_is_safe else ''
+    
+
 
     def get_form_class(self):
         return self.authentication_form or self.form_class
@@ -197,7 +198,7 @@ def logout(request, next_page=None,
            extra_context=None):
     warnings.warn(
         'The logout() view is superseded by the class-based LogoutView().',
-        RemovedInDjango21Warning, stacklevel=2
+         stacklevel=2
     )
     return LogoutView.as_view(
         next_page=next_page,
