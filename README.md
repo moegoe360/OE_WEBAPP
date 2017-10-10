@@ -18,7 +18,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 
 ### How do I get set up? ###
-
+# pip install psycopg2 and django-bootstrap...etc etc
 * Summary of set up
 The development environment used is Eclipse. Download Eclipse and install the pydev extension for easy python development.
 * Configuration
