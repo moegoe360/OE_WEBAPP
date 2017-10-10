@@ -6,11 +6,13 @@
 <div class="container" id="exam">
 	<h1>{{ experiment.name }}</h1>
 	<p style="text-align: center;">Before starting the experiment you must go fullscreen</p>
-	<p style="text-align: center;"> <input class="btn btn-primary" value="Go Fullscreen" onclick="toggleFullScreen(document.body)"></p>
-	<div class="bg-primary" style="height:250px;">
-	<canvas id="canvas"></canvas>
-	</div>
-	<script>{{experiment.js_Code|safe|escape}}</script>
-	
 </div>
+<script>{{experiment.js_Code|safe|escape}}</script>
+	<p style="text-align: center;"> <input id="btnFullScreen" class="btn btn-primary" value="Go Fullscreen" onclick="toggleFullScreen(document.body)"></p>
+	<script>
+	$(this.getElementById("btnFullScreen")).hover(function(){
+	    $(this).css("opacity", "0.8");
+	    }, function(){
+	    $(this).css("opacity", "0.1");
+	});</script>
 {% endblock %}
