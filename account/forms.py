@@ -1,4 +1,4 @@
-from django.contrib.auth import get_user_model #Gets current user model
+from django.contrib.auth import get_user_model #imports current user model
 from django.contrib.auth.forms import UserCreationForm
 
 from django import forms
@@ -12,7 +12,9 @@ from django.forms.widgets import RadioSelect
 
 #from .validators import validate_email_unique <- Do we even need?
 class UserCreateForm(UserCreationForm):
-    
+    """
+        The form used to create a user
+    """
     class Meta:
         fields = ('username', 'email', 'password1', 'password2')
         model = get_user_model()
@@ -21,17 +23,24 @@ class UserCreateForm(UserCreationForm):
         super().__init__(*args, **kwargs)
 
 class LoginForm(forms.Form):
+    """
+        The form used in the login screen
+    """
     username = forms.CharField()
     password = forms.CharField(widget=forms.PasswordInput)
-    
-
         
 class UserEditForm(forms.ModelForm):
+    """
+        The form used to edit the user information
+    """
     class Meta:
         model = User
         fields = ('email',)
           
 class ProfileEditForm(forms.ModelForm):
+    """
+        The form used to edit participant pre-information
+    """
     class Meta:
         model = Profile
         fields = ('date_of_birth', 'age','gender', 'race', 'education')

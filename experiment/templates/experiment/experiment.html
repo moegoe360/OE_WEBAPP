@@ -3,16 +3,25 @@
 {% block title %} Experiment{% endblock %}
 {% block extraSrc %} {{ experiment.js_Code_Header|safe|escape }} {% endblock %}
 {% block content %}
+<script>
+/* document.addEventListener('keydown', (event) => {
+	const keyName = event.key;
+	
+	if (keyName === 'Escape'){
+		
+		if(document.fullScreen || document.mozFullScreen || document.webkitIsFullScreen) toggleFullScreen(document.body);
+		
+	}
+}, false); */
+</script>
+
 <div class="container" id="exam">
 	<h1>{{ experiment.name }}</h1>
 	<p style="text-align: center;">Before starting the experiment you must go fullscreen</p>
-</div>
-<script>{{experiment.js_Code|safe|escape}}</script>
 	<p style="text-align: center;"> <input id="btnFullScreen" class="btn btn-primary" value="Go Fullscreen" onclick="toggleFullScreen(document.body)"></p>
-	<script>
-	$(this.getElementById("btnFullScreen")).hover(function(){
-	    $(this).css("opacity", "0.8");
-	    }, function(){
-	    $(this).css("opacity", "0.1");
-	});</script>
+</div>
+<div id="outside">
+<script>{{experiment.js_Code|safe|escape}}</script>
+</div>
+
 {% endblock %}

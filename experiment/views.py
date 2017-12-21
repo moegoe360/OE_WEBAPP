@@ -12,6 +12,9 @@ from django.utils.decorators import method_decorator
 
 
 class ExperimentListView(ListView):
+    """
+        Using Django's generic ListView which displays all experiments in list format
+    """
     context_object_name = 'experiments'
     model = Experiment
     
@@ -28,7 +31,7 @@ class ExperimentListView(ListView):
 
 def belongsToResearcher(researcher, expID):
     """
-    Checks if experiment belongs to researcher
+        Checks if experiment belongs to researcher
     """
     try:
         researcher.experiments.get(id=expID)
@@ -37,6 +40,9 @@ def belongsToResearcher(researcher, expID):
         return False
             
 class ExperimentDetailView(DetailView):
+    """
+        Using Django's generic DetailView which displays the detail(js code, data published, etc) of an experiment
+    """
     context_object_name = 'experiment'
     model = Experiment
      
@@ -48,6 +54,9 @@ class ExperimentDetailView(DetailView):
             return HttpResponse(Http404("You are not a researcher or experiment does not belong to you"))
      
 class ExperimentCreateView(CreateView):
+    """
+        Using Django's generic CreateView which produces a form that will help a researcher produce an experiment. Once form is filled out, experiment model is saved in database.
+    """
     fields = ('name', 'description', 'js_Code_Header', 'js_Code')
     model = Experiment
     success_url = reverse_lazy("experiment:exp_list")
@@ -76,6 +85,9 @@ class ExperimentCreateView(CreateView):
             return HttpResponse(Http404("You are not a researcher"))
      
 class ExperimentUpdateView(UpdateView):
+        """
+            Using Django's generic UpdateView which produces a form that will help researchers to edit the experiment detail.
+        """
         fields = ('name','description','js_Code_Header', 'js_Code', 'is_Published')
         model = Experiment
          
@@ -87,6 +99,9 @@ class ExperimentUpdateView(UpdateView):
                 return HttpResponse(Http404("You are not a researcher or experiment does not belong to you"))
          
 class ExperimentDeleteView(DeleteView):
+        """
+            Using Django's generic DeleteView which displays a simple delete page for the experiment model
+        """
         model = Experiment
         success_url = reverse_lazy("experiment:exp_list") #reverse_lazy used because it waits for all the code to run before running
          
@@ -98,12 +113,18 @@ class ExperimentDeleteView(DeleteView):
                 return HttpResponse(Http404("You are not a researcher or experiment does not belong to you"))
                  
 class ExperimentPublicListView(ListView):
+    """
+        Using Django's generic ListView to display a list of the experiments that will be displayed to all users. Renders experiment_list_public.html.
+    """
     context_object_name = 'experiments'
     model = Experiment
     template_name = "experiment/experiment_list_public.html"
      
      
 class ExperimentPublicTest(DetailView):
+    """
+        Using Django's generic DetailView which displays basic experiment detail and will render experiment.html
+    """
     context_object_name = 'experiment'
     model = Experiment
     template_name = "experiment/experiment.html"

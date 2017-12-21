@@ -1,7 +1,9 @@
 from .models import User
 
 class EmailAuthBackend(object):
-    #Authenticate using an email account
+    """
+        Allows for authentication using user emailaddress
+    """
     
     def authenticate(self, username=None, password=None):
         try:

@@ -40,9 +40,7 @@ AUTHENTICATION_BACKENDS = (
 
 INSTALLED_APPS = [
     'account',
-    
     'django.contrib.auth',
-
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -92,8 +90,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'db_oe_platform',
-        'USER': 'moe1',
-        'PASSWORD': 'TempPass123',
+        'USER': 'postgres',
+        'PASSWORD': 'root',
         'HOST': 'localhost',
         'PORT': '',
         }
@@ -137,10 +135,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/static/' # Location of static files
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
     ]
-REDIRECT_FIELD_NAME = reverse_lazy('account:dashboard')
-LOGIN_REDIRECT_URL = reverse_lazy('account:dashboard')
+REDIRECT_FIELD_NAME = reverse_lazy('account:dashboard') 
+LOGIN_REDIRECT_URL = reverse_lazy('account:dashboard')  
 LOGOUT_REDIRECT_URL = reverse_lazy('account:logout')

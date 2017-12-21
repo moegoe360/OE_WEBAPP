@@ -21,6 +21,9 @@ from django.views import generic
 
  
 class RegisterAccount(generic.CreateView):
+     """
+         view method that registers a user if registration formed is filled out. Saves user as a participant or researcher depending on which url path is accessed.
+     """
      form_class = forms.UserCreateForm
      success_url = reverse_lazy('account:register_done')
      template_name = 'account/registration/register.html'
@@ -45,19 +48,31 @@ class RegisterAccount(generic.CreateView):
                  return super(RegisterAccount, self).form_valid(form)
 
 class RegisterAccountDoneView(generic.TemplateView):
+     """
+        A template view that displays register_done.html
+     """
      template_name = 'account/registration/register_done.html'
  
 
 
 class LoggedOutView(generic.TemplateView):
+     """
+         A template view that displays logged_out.html
+     """
      template_name = 'account/logged_out.html'
      
 @login_required
 def dashboard(request): 
+     """
+         A view method that displays dashboard.html when user is logged in and passes a 'section' variable as 'dashboard'
+     """
      return render(request, 'account/dashboard.html', {'section': 'dashboard'})
  
 @login_required
 def edit(request):
+    """
+        A view method that saves the changed data on the user profile or participant profile.
+    """
     if request.method == 'POST':
         user_form = forms.UserEditForm(instance=request.user, data=request.POST)
         profile_form = forms.ProfileEditForm(instance=request.user.profile, data=request.POST)
@@ -84,6 +99,9 @@ def edit(request):
  
 @login_required
 def accountRemoval(request):
+    """
+        A view method that allows the user to completely remove their account.
+    """
     if 'remove_profile' in request.POST:
        # messages.info(request, 'You clicked button 1')
        pass

@@ -61,7 +61,7 @@ class User(AbstractBaseUser, PermissionsMixin):
      email = models.EmailField(_('email address'), max_length=254, unique=True, null=True, blank=True)     
      is_participant = models.BooleanField(blank=True, default = False)
      is_researcher = models.BooleanField(blank=True, default = False)
-     experiments = models.ManyToManyField(Experiment) #Create many to many relationship with Use will only be relevant to researchers
+     experiments = models.ManyToManyField(Experiment) #Create many to many relationship with User will only be relevant to researchers
      date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
      objects = UserManager()
      
