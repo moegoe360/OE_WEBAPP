@@ -1,9 +1,20 @@
 {% extends "base.html" %}
 
 {% block title %} Experiment{% endblock %}
-{% block extraSrc %} {{ experiment.js_Code_Header|safe|escape }} {% endblock %}
+{% block extraSrc %} <!-- {{ experiment.js_Code_Header|safe|escape }} --> {% endblock %}
+
 {% block content %}
-<script>
+
+<form method="post">
+ {% csrf_token %}
+<iframe src="{{ htmlFile.file.url }}" onload="this.width=screen.width;this.height=screen.height;">
+  <p>Your browser does not support iframes.</p>
+</iframe>  
+<input type="submit" value="Submit" />
+</form>
+
+
+<!-- <script>
 /* document.addEventListener('keydown', (event) => {
 	const keyName = event.key;
 	
@@ -13,15 +24,18 @@
 		
 	}
 }, false); */
-</script>
+</script> -->
 
-<div class="container" id="exam">
+<!-- <div class="container" id="exam">
 	<h1>{{ experiment.name }}</h1>
 	<p style="text-align: center;">Before starting the experiment you must go fullscreen</p>
 	<p style="text-align: center;"> <input id="btnFullScreen" class="btn btn-primary" value="Go Fullscreen" onclick="toggleFullScreen(document.body)"></p>
 </div>
-<div id="outside">
-<script>{{experiment.js_Code|safe|escape}}</script>
-</div>
+<div id="experiment">
+{{experiment.js_Code|safe|escape}}
+</div> -->
+
+
+
 
 {% endblock %}

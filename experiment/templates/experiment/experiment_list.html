@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Experiment View{% endblock %}
-
-{% block content %}
 {% load static %}
+{% block content %}
+
+{% block javascript %}<script type="text/javascript" src="{% static 'js/table.js' %}"></script>{% endblock %}
 <div class="container">
-<script type="text/javascript" src="{% static '/js/table.js' %}"></script>
 	<h1>My Experiment List</h1>
 	{% if not experiments %}
 		<p>There are no experiments, please upload an experiment</p>

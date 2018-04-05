@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load bootstrap3 %}
+
+{% block title %} Update Experiment {% endblock %}
+{# {% block extraSrc %}<script src="{% static "js/functions.js" %}"></script> {% endblock %} #}
+{% block content %} 
+<div class="container">
+<h1>
+	Update Experiment
+</h1>
+
+	<form method="post" enctype="multipart/form-data">
+	{% csrf_token %}
+	{% bootstrap_form form %}
+	<!-- <input type="file" name="file_upload" value="upload"> -->
+		<table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Uploaded Files</th>
+      </tr>
+    </thead>
+    <tbody>
+	{% for file in attachments %}
+	<input type="hidden" name="id" value="{{ file.id }}"><tr><th>{{ file.filename }}</th>
+		{% endfor %} 
+    </tbody>
+  </table>
+  <p><a href="{% url 'experiment:file_list' experiment.id %}">to update files click here</a></p>
+  
+	<input type="submit" name="experiment upload" class="btn btn-primary" value="Submit">
+	</form>
+
+</div>
+{% endblock %}
+

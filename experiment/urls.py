@@ -14,6 +14,10 @@ urlpatterns = [
     url(r'^experiment_list_public/$', views.ExperimentPublicListView.as_view(), name='exp_list_public'),
     url(r'^experiment_list_public/(?P<pk>\d+)/$', views.ExperimentPublicTest.as_view(), name='exp_test'),
 
+    url(r'^researcher/experiment_list/(?P<epk>\d+)/file_list/$', views.FileListView.as_view(), name='file_list'),
+    #url(r'^researcher/experiment_list/file_create/$', views.FileCreateView.as_view(), name='file_create'),
+    url(r'^researcher/experiment_list/(?P<epk>\d+)/file_list/delete/(?P<pk>\d+)/$', views.FileDeleteView.as_view(), name='file_delete'),
+
     ]
 
 

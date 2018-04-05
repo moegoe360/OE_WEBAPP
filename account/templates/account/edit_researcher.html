@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load bootstrap3 %}
+{% block title %}Edit your account{% endblock %}
+
+{% block content %}
+<div class="container">
+	<h1>Edit your information</h1>
+	<p>You can edit your account using the following form:</p>
+	<p>Any fields completed will be pre-filled for experiment profiles</p>
+	<form action="." method="post"> 
+		{% csrf_token %}
+		{# {% bootstrap_form form1 %} #}
+		{% bootstrap_form user_form %} 
+		{% bootstrap_form profile_form %} 
+		<p><input type="submit" class="btn btn-default" value="Save changes"></p>
+	</form>
+	<p><a href="{% url 'account:account_remove' %}">Would you like to remove your account?</a></p> 
+</div>
+{% endblock %}

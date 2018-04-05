@@ -17,8 +17,16 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate, get_user, login
 from django.views import generic
+import os
+from OE_Platform.settings import MEDIA_ROOT
 
-
+  
+def researcher_create_directory_path(instance): #May not need this method
+     # file will be uploaded to /uploads/researcher_<id>/<experiment>/
+     hdr = "uploads/researcher_{0}".format(instance.username)
+     adr = os.path.join(MEDIA_ROOT, hdr)
+     instance.home_directory = hdr 
+     os.mkdir(adr)          
  
 class RegisterAccount(generic.CreateView):
      """
@@ -44,6 +52,7 @@ class RegisterAccount(generic.CreateView):
                  return super(RegisterAccount, self).form_valid(form)
          elif self.request.path == "/account/researcher/register/":
                  new_user.is_researcher = True
+                 researcher_create_directory_path(new_user)
                  new_user.save()
                  return super(RegisterAccount, self).form_valid(form)
 
@@ -75,14 +84,17 @@ def edit(request):
     """
     if request.method == 'POST':
         user_form = forms.UserEditForm(instance=request.user, data=request.POST)
-        profile_form = forms.ProfileEditForm(instance=request.user.profile, data=request.POST)
+        profile_form
+        if (request.user.is_participant):
+            profile_form = forms.ProfileEditForm(instance=request.user.profile, data=request.POST)
          
         if not (user_form.has_changed() or profile_form.has_changed()): 
             messages.info(request, 'There was no changes done on the profile ')
         elif user_form.is_valid() and profile_form.is_valid():  
             #To do-> Add code that checks date and compares it to age, give an error if they dont match
             user_form.save()
-            profile_form.save()
+            if (request.user.is_participant):
+                profile_form.save()
             messages.success(request, 'Profile updated successfuly')
          #if not user_form.data['date_of_birth']:
           #      born = user_form.data['date_of_birth']
@@ -93,9 +105,14 @@ def edit(request):
             messages.error(request, 'Error updating your profile')
     else:
         user_form = forms.UserEditForm(instance=request.user)
-        profile_form = forms.ProfileEditForm(instance=request.user.profile)
+        if (request.user.is_participant):
+            profile_form = forms.ProfileEditForm(instance=request.user.profile)
      
-    return render(request, 'account/edit.html', {'user_form': user_form, 'profile_form': profile_form})
+    if (request.user.is_participant):
+        return render(request, 'account/edit.html', {'user_form': user_form, 'profile_form': profile_form})
+    else:
+        return render(request, 'account/edit.html', {'user_form': user_form})
+
  
 @login_required
 def accountRemoval(request):
@@ -109,7 +126,7 @@ def accountRemoval(request):
        # messages.info(request, 'You clicked button 2')
        instance = get_user(request)
        instance.delete()
-       return render(request, 'logged_out.html')
+       return render(request, 'account/logged_out.html')
          
     return render(request, 'account/account_remove.html')
  

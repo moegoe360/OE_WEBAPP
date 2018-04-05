@@ -5,7 +5,7 @@
 {% block content %}	
 		<!-- Do i need a form here? How can I replace with just buttons with the csrf tokens for safety? -->
 		
-		<form action="." method="post">
+		<form action="." method="post" enctype="multipart/form-data">
 		{% csrf_token %}
 		<h2>Would you like to remove your account but keep experimental data?</h2> <!-- Make this div as the title -->
 		<p>Removing your account will completely remove your profile but keep all experiment results to be used for 
@@ -27,6 +27,7 @@
 		{% else %}
 		<p><input type="submit" name="remove2" value="remove account"></p>
 		{% endif %}
+		</form>
 
 		<!--  <button class="btn btn-primary btn-block">Remove Account but keep experimental data</button> -->
 		<!--  <button class="btn btn-danger btn-block">Remove Account and remove all experimental data</button> -->

@@ -3,8 +3,8 @@
 
 {% block content %}
 {% load static %}
+{% block javascript %}<script type="text/javascript" src="{% static 'js/table.js' %}"></script>{% endblock %}
 <div class="container">
-<script type="text/javascript" src="{% static '/js/table.js' %}"></script>
 	<h1>Experiment List</h1>
 		
 			{% if experiments %}
@@ -18,10 +18,13 @@
 						</thead>
 						<tbody>
 						{% for experiment in experiments %}
-						<tr onclick="location.href='{{ experiment.id }}';">
-							<td >{{ experiment.name }}</td>
-							<td >{{ experiment.description }}</td>
-						</tr>
+							{% if experiment.is_Published %}
+								 <tr onclick="location.href='{{ experiment.id }}';">
+									<td >{{ experiment.name }}</td>
+									<td >{{ experiment.description }}</td>
+								</tr>
+							{% endif %}
+
 						{% endfor%}
 						</tbody>
 					</table>

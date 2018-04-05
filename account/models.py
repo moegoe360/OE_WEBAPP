@@ -18,6 +18,7 @@ from django.utils import timezone
 #from fernet_fields import EncryptedTextField
 
 # Create your models here.
+
 class UserManager(BaseUserManager):
     use_in_migrations = True
     
@@ -63,6 +64,7 @@ class User(AbstractBaseUser, PermissionsMixin):
      is_researcher = models.BooleanField(blank=True, default = False)
      experiments = models.ManyToManyField(Experiment) #Create many to many relationship with User will only be relevant to researchers
      date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+     home_directory = models.CharField(max_length=150)
      objects = UserManager()
      
      EMAIL_FIELD = 'email'

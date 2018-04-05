@@ -4,15 +4,50 @@
 
 {% block content %}
 <div class="container">
-	<h1>Detail View of Experiment</h1>
-	<p>Name: {{ experiment.name }} </p>
-	<p>Owner: {{ experiment.owner }} </p>
-	<p>Description: {{ experiment.description }} </p>
-	<!--   <p>Location of file: {{ experiment.file }} </p> -->
-	
+<h1>Detail View of Experiment</h1>
+		<table class="table">
+		<thead><tr>
+		<th>Name</th>
+		<th>Owner</th>
+		<th>Description</th>
+		</tr></thead>
+		<tbody class="non-bolded">
+		<tr>
+		<th>{{ experiment.name }}</th>
+		<th>{{ experiment.created_By }}</th>
+		<th> {{ experiment.description }}</th>
+		<th><a href="{% url 'experiment:exp_update' pk=experiment.pk %}" class="btn btn-warning">Update</a>
+		</th>
+		<th><a href="{% url 'experiment:exp_delete' pk=experiment.pk %}" class="btn btn-danger">Delete</a>
+		</th>
+		</tr>
+		</tbody>
+	<!-- 
+		
+		<thead><tr><th>Uploaded Files</th></tr></thead>
+		
+		<tbody>
+		
+		</tbody>
+	</table> -->
+	{% if attachments %}
+	<table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Uploaded Files</th>
+      </tr>
+    </thead>
+    <tbody>
+	{% for file in attachments %}
+		<tr><th>{{ file.filename }}</th></tr>
+		{% endfor %}
+    </tbody>
+    {% endif %}
+  </table>
+  
 	<div class="container">
-	<p><a href="{% url 'experiment:exp_update' pk=experiment.pk %}" class="btn btn-warning">Update</a></p>
-	<p><a href="{% url 'experiment:exp_delete' pk=experiment.pk %}" class="btn btn-danger">Delete</a></p>
+	<p><a href="{% url 'experiment:file_list' experiment.id %}" class="btn btn-primary">Upload/Delete Files</a></p>
+	
 	</div>
 </div>
 {% endblock %}

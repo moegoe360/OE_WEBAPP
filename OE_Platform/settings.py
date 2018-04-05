@@ -40,13 +40,14 @@ AUTHENTICATION_BACKENDS = (
 
 INSTALLED_APPS = [
     'account',
+    'multiupload',
+    'experiment',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bootstrap3',
-    'experiment',
     'django.contrib.admin',
     
  #   'django_cleanup', #used to delete files when model is deleted
@@ -134,7 +135,8 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
-
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"
 STATIC_URL = '/static/' # Location of static files
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
@@ -142,3 +144,4 @@ STATICFILES_DIRS = [
 REDIRECT_FIELD_NAME = reverse_lazy('account:dashboard') 
 LOGIN_REDIRECT_URL = reverse_lazy('account:dashboard')  
 LOGOUT_REDIRECT_URL = reverse_lazy('account:logout')
+
