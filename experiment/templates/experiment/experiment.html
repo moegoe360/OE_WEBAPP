@@ -1,17 +1,18 @@
-{% extends "base.html" %}
+{# % extends "base.html" %}
 
 {% block title %} Experiment{% endblock %}
 {% block extraSrc %} <!-- {{ experiment.js_Code_Header|safe|escape }} --> {% endblock %}
 
 {% block content %}
 
-<form method="post">
+{% include htmlFile.file.url %}
+<!-- <form method="post">
  {% csrf_token %}
 <iframe src="{{ htmlFile.file.url }}" onload="this.width=screen.width;this.height=screen.height;">
   <p>Your browser does not support iframes.</p>
 </iframe>  
 <input type="submit" value="Submit" />
-</form>
+</form> -->
 
 
 <!-- <script>

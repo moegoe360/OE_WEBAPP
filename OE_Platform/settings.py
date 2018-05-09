@@ -68,7 +68,8 @@ ROOT_URLCONF = 'OE_Platform.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [(os.path.join(BASE_DIR, 'templates')),],
+        'DIRS': [(os.path.join(BASE_DIR, 'templates')),
+                 'media/uploads.researcher_R1/EXP1',],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
