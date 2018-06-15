@@ -450,12 +450,8 @@ def PostData(request): #Runs backend stuff
     print(table_name)
     createTable(table_name, query)
     #insert into table
-    #insertTable()
-    
-    
-    
-    
-    
+    data = json.loads(data)
+    insertTable(table_name, data)
     
     return HttpResponse(a)
     

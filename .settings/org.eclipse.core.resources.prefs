@@ -1,2 +1,5 @@
 eclipse.preferences.version=1
 encoding//multiupload/fields.py=utf-8
+encoding//multiupload/tests/__init__.py=utf-8
+encoding//multiupload/tests/test_field.py=utf-8
+encoding//multiupload/tests/utils.py=utf-8
