@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+
+{% block title %} Create Experiment {% endblock %}
+
+{% block content %} 
+<div class="container">
+<h1>
+	{% if not form.instance.pk %}
+	Create Experiment
+	{% else %}
+	Update Experiment
+	{% endif %}
+</h1>
+
+	<form method="post" enctype="multipart/form-data">
+	{% csrf_token %}
+	{% bootstrap_form form %}
+	<input type="submit" name="experiment upload" class="btn btn-primary" value="Submit">
+	</form>
+
+</div>
+{% endblock %}
+

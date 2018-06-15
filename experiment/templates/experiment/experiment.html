@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %} Experiment{% endblock %}
+{% block extraSrc %} <!-- {{ experiment.js_Code_Header|safe|escape }} --> {% endblock %}
+
+{% block content %}
+
+<iframe id="iframe" src="{{ htmlFile.file.url }}" style="position:fixed; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden; z-index:999999;">
+  <p>Your browser does not support iframes.</p>
+</iframe>  
+
+
+<script>
+function PostData(tdata){
+	console.log("hi");
+	console.log(tdata);
+	td = JSON.stringify(tdata);
+	expID = {{ experiment.id }}
+	//get data
+	
+	//var data = document.getElementById('iframe').contentWindow.data;
+	      $.ajax({
+			type: "POST",
+	        url: '/experiment/ajax/post/', //for post urls, there must have a slash at the end :S
+	        data: {'data': td , 'csrfmiddlewaretoken': '{{ csrf_token }}', "expID":expID},
+	        dataType: 'json',
+	        async: true,
+	        success: function (data) {
+	            alert(data);
+	        }
+	      });
+}
+
+</script>
+
+
+{% endblock %}
