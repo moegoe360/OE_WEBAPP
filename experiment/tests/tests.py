@@ -28,18 +28,31 @@ class ExperimentTestCase(TestCase):
 #         #self.assertEqual(a, b) does a == b? 
         
     def testTable(self):
+        """
+        Tests the table creation method, check if table exists method,
+        and the table insert method
+        """
         table_name = "tableForTest"
-        sqlQuery = """CREATE table %s (
+        sqlQuery = """
+            CREATE table {} (
             val1 VARCHAR(3),
             val2 VARCHAR(3),
-            val3 VARCHAR(3),
+            val3 VARCHAR(3)
             );"""
         data1 = {"val1": "1", "val2":"2", "val3":"3"}
         data2 = {"val1": "12", "val2":"23", "val3":"33"}
         data3 = {"val1": "13", "val2":"21", "val3":"d3"}
         data = [data1 ,data2, data3]
-        createTable(table_name, sqlQuery)
+        CreateTable(table_name, sqlQuery)
         #check if table exists
         self.assertTrue(tableExist(table_name))
+        #Insert data into table
+        InsertTable(table_name, data1)
+        cur = cursor.connection()
+        
+        self.assertTru(data1, cur.fetchone())
+        
+    
+        
         
         

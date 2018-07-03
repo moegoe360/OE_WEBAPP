@@ -26,7 +26,7 @@ class Experiment(models.Model):
      description = models.TextField(max_length=500, blank=True, null=True)
      created_By = models.CharField(max_length=50)
      home_directory = models.CharField(max_length=150)
-     sql_table_creation = models.CharField(max_length=150)
+     query = models.CharField(max_length=150)
      # in a way having the table creation is redundant because what was needed is 
      # to build tables based on final experiment, tables may be created differently
      # from the beginning of the experiment to end...
@@ -86,42 +86,42 @@ class Trial(models.Model):
     date_of_trial = models.DateTimeField(_('date uploaded'), default=timezone.now) 
    
     
-class Data(models.Model):
-    trial = models.ForeignKey(Trial) 
-    DATA_CHOICES = (
-        ('FLO', 'Float'),
-        ('INT', 'Integer' ),
-        ('CHAR', 'Chars'), # characters up to 255
-        ('STR', 'String'), # characters larger than 255
-        ('DAT', 'Date'),
-        ('BOOL', 'Boolean'),
-        ('DUR', 'Duration'),
-        )
-    dataType = models.CharField(_('Data Type'), max_length = 5,choices=DATA_CHOICES, blank='false')
-    
-    class Meta:
-        abstract = True
-        
-class IntData(Data):
-    value = models.IntegerField(_('Data Value'), blank='false')
-    
-class FloatData(Data):
-    value = models.FloatField(_('Data Value'), blank='false')
-    
-class CharsData(Data):
-    value = models.CharField(_('Data Value'), max_length=255, blank='false')
-    
-class StrData(Data):
-    value = models.TextField(_('Data Value'), blank='false')    
-    
-class DateData(Data):
-    value = models.DateField(_('Data Value'), blank='false')    
-
-class BooleanData(Data):
-    value = models.BooleanField(_('Data Value'), blank='false')  
-
-class DurationData(Data):
-    value = models.DurationField(_('Data Value'), blank='false')  
+# class Data(models.Model):
+#     trial = models.ForeignKey(Trial) 
+#     DATA_CHOICES = (
+#         ('FLO', 'Float'),
+#         ('INT', 'Integer' ),
+#         ('CHAR', 'Chars'), # characters up to 255
+#         ('STR', 'String'), # characters larger than 255
+#         ('DAT', 'Date'),
+#         ('BOOL', 'Boolean'),
+#         ('DUR', 'Duration'),
+#         )
+#     dataType = models.CharField(_('Data Type'), max_length = 5,choices=DATA_CHOICES, blank='false')
+#     
+#     class Meta:
+#         abstract = True
+#         
+# class IntData(Data):
+#     value = models.IntegerField(_('Data Value'), blank='false')
+#     
+# class FloatData(Data):
+#     value = models.FloatField(_('Data Value'), blank='false')
+#     
+# class CharsData(Data):
+#     value = models.CharField(_('Data Value'), max_length=255, blank='false')
+#     
+# class StrData(Data):
+#     value = models.TextField(_('Data Value'), blank='false')    
+#     
+# class DateData(Data):
+#     value = models.DateField(_('Data Value'), blank='false')    
+# 
+# class BooleanData(Data):
+#     value = models.BooleanField(_('Data Value'), blank='false')  
+# 
+# class DurationData(Data):
+#     value = models.DurationField(_('Data Value'), blank='false')  
 
 
          

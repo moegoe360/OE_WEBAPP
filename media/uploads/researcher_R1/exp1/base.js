@@ -1,5 +1,5 @@
 // function to calculate the result of the survey
-  var tbl = {"q1": "", "q2":"", "q3":"", "q4":"","ans":""}
+  var tbl = {"q1": "", "q2":"", "q3":"", "q4":"","answer":""}
 function tabulateAnswers() {
   // initialize variables for each choice's score
   // If you add more choices and outcomes, you must add another variable here.
@@ -88,4 +88,9 @@ function PostAnswer() {
 	
 	parent.PostData(tbl);
 	
+}
+
+function fullScreen() {
+	parent.fullscreen;
+	console.log("ok")
 }

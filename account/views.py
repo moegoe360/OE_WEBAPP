@@ -84,7 +84,7 @@ def edit(request):
     """
     if request.method == 'POST':
         user_form = forms.UserEditForm(instance=request.user, data=request.POST)
-        profile_form
+        #profile_form
         if (request.user.is_participant):
             profile_form = forms.ProfileEditForm(instance=request.user.profile, data=request.POST)
          

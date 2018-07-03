@@ -4,35 +4,17 @@ html,
 body {
   height: 100%;
   width: 100%;
-  overflow: scroll;
+  overflow: scroll; /* used to be "scroll" */
   background: #191063;
   margin: 0;
+  padding: 0;
 }
 
 .test {
 	background-color:red;
 }
 
-#FS:-webkit-full-screen {
-  width: 100%;
-  height: 100%;
-}
-#FS:-moz-full-screen {
-  width: 100%;
-  height: 100%;
-}
-#FS:-ms-full-screen {
-  width: 100%;
-  height: 100%;
-}
-#FS:fullscreen {
-  width: 100%;
-  height: 100%;
-}
 
- :fullscreen::backdrop {
-	background-color: #006; dark blue
-}
 
 
 p {
@@ -131,4 +113,48 @@ ul.messages li a.close {
             
 }
 
+.iframe {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	top: 50px;
+}
 
+.iframe iframe {
+	display: block;
+	width: 100%;
+	height: 100%;
+	border: none;
+	
+	}
+	
+*:fullscreen
+*:-ms-fullscreen,
+*:-webkit-full-screen,
+*:-moz-full-screen {
+   overflow: auto !important;
+}	
+	
+/* #FS:-webkit-full-screen {
+  width: 100%;
+  height: 100%;
+}
+#FS:-moz-full-screen {
+  width: 100%;
+  height: 100%;
+}
+#FS:-ms-full-screen {
+  width: 100%;
+  height: 100%;
+}
+#FS:fullscreen {
+  width: 100%;
+  height: 100%;
+}
+
+ :fullscreen::backdrop {
+	background-color: #006; dark blue
+}	 */
+	
+	

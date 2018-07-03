@@ -2,7 +2,8 @@ body {
   font-family: sans-serif;
   background: green;
   margin: 0 px;
-  width: 100%
+  width: 99%;
+  height: 99%;
 }
 h2 {
   margin: 5px 0;

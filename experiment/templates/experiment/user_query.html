@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Participant Query Page{% endblock %}
+{% load static %}
+{% block content %}
+<h1>Trial data of Participant</h1>
+
+
+<div class="container">
+<div>
+	<form action="{% url 'experiment:csv' %}" method="post" enctype="multipart/form-data">
+	{% csrf_token %}
+	<input type="hidden" name="table" value="{{ table }}">
+	<button type="submit" name="csv" class="btn btn-default bt-sm">Download CSV File</button>	
+</div>
+	  <table class="table table-bordered">
+		<thead>
+		<tr>
+			{% for key in data.keys %}
+			<th>{{ key }}</th>
+			{% endfor%}
+		</tr>
+		
+		</thead>
+		<tbody>
+		{% for item in data.values %}
+		<tr>
+		{% for x in item %}
+			<td >{{ x }}</td>
+			{% endfor %}
+		</tr>
+		{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endblock %}

@@ -1,3 +1,4 @@
+//not used...
 $(document).ready(function(){
     var $myForm = $('.ajax-form')
     $myForm.submit(function(event){

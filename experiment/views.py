@@ -25,6 +25,7 @@ from psycopg2 import sql
 import psycopg2
 from psycopg2.extensions import AsIs
 from django.db import connection
+from django.utils.text import slugify
 
        
 def experiment_create_directory_path(user, experiment):
@@ -47,6 +48,48 @@ def multipleFilesUpload(form, exp, instance):
     for each in form.cleaned_data['files']:
         Attachment.objects.create(file=each, experiment=exp)
         
+class CSVResponseMixin(object):
+    csv_filename = 'csvfile.csv'
+
+    def get_csv_filename(self):
+        return self.csv_filename
+
+    def render_to_csv(self, data):
+        response = HttpResponse(content_type='text/csv')
+        cd = 'attachment; filename="{0}"'.format(self.get_csv_filename())
+        response['Content-Disposition'] = cd
+
+        writer = csv.writer(response)
+        for row in data:
+            writer.writerow(row)
+
+        return response        
+    
+# class CSVResponseMixin(object):
+#     """
+#     A generic mixin that constructs a CSV response from the context data if
+#     the CSV export option was provided in the request.
+#     """
+#     def render_to_response(self, context, **response_kwargs):
+#         """
+#         Creates a CSV response if requested, otherwise returns the default
+#         template response.
+#         """
+#         # Sniff if we need to return a CSV export
+#         if 'csv' in self.request.GET.get('export', ''):
+#             response = HttpResponse(content_type='text/csv')
+#             response['Content-Disposition'] = 'attachment; filename="%s.csv"' % slugify(context['title'])
+# 
+#             writer = csv.writer(response)
+#             # Write the data from the context somehow
+#             for item in context['items']:
+#                 writer.writerow(item)
+# 
+#             return response
+#         # Business as usual otherwise
+#         else:
+#             return super(CSVResponseMixin, self).render_to_response(context, **response_kwargs)      
+          
 class FormAndListView(BaseCreateView, BaseListView, TemplateResponseMixin):
     def get(self, request, *args, **kwargs):
         formView = BaseCreateView.get(self, request, *args, **kwargs)
@@ -111,6 +154,50 @@ class ExperimentDetailView(DetailView):
     def dispatch(self, *args, **kwargs):
         if self.request.user.is_researcher and belongsToResearcher(self.request.user, DetailView.get_object(self).id):
             return super(ExperimentDetailView, self).dispatch(*args, **kwargs)
+        else:
+            return HttpResponse(Http404("You are not a researcher or experiment does not belong to you"))
+
+from account.models import User        
+class ExperimentUserListView(ListView):
+    """
+        ListView that displays all users that completed the experiment
+    """
+    context_object_name = 'participant'
+    model = User
+    template_name = 'Experiment/user_list.html'
+    
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        print("testing 1-2")
+        print(self.kwargs.get('epk', ''))
+        if self.request.user.is_researcher and belongsToResearcher(self.request.user, self.kwargs.get('epk', '')):
+            return super(ExperimentUserListView, self).dispatch(*args, **kwargs)
+        else:
+            return HttpResponse(Http404("You are not a researcher or experiment does not belong to you"))    
+#     def get_context_data(self, **kwargs):
+#         context = super(ExperimentUserListView, self).get_context_data(**kwargs)
+#         return context   
+
+class ExperimentUserQueryView(CSVResponseMixin, TemplateView):
+    """
+        Query of the participant data for that specific experiment, with the option to export CSV file
+    """
+    template_name = "experiment/user_query.html"
+        
+    def get_context_data(self, **kwargs):
+        context = super(ExperimentUserQueryView, self).get_context_data(**kwargs)
+        eID = self.kwargs.get('epk', '')
+        uID = self.kwargs.get('pk', '')
+        table_name = "exp" + eID + "_" + uID
+        query = """table {};"""
+        context['data'] = QueryData(table_name, query) 
+        context['table'] = table_name
+        return context   
+          
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        if self.request.user.is_researcher and belongsToResearcher(self.request.user, self.kwargs.get('epk', '')):
+            return super(ExperimentUserQueryView, self).dispatch(*args, **kwargs)
         else:
             return HttpResponse(Http404("You are not a researcher or experiment does not belong to you"))
         
@@ -361,9 +448,10 @@ class ExperimentPublicTest(DetailView):
         
         return context 
     
-def tableExist(table_name):
+def TableExist(table_name):
+    cursor = connection.cursor()
     try:
-        cursor.execute("SELECT to_regclass(%s)",table_name)
+        cursor.execute("SELECT to_regclass('{}');".format(table_name))
         if cursor.fetchone()[0]:
             return 1
         else:
@@ -371,35 +459,39 @@ def tableExist(table_name):
     except:
         print("error checking if table exists")
 
-def createTable(table_name, sql):
+def CreateTable(table_name, sql):
     cursor = connection.cursor()
     #check if table exists
-    if tableExist(table_name):
+    print("----creating table----")
+    if TableExist(table_name):
         print("table already exists")
     else:
         try:
             #sql should be created from the output data
-            cursor.execute(sql, (AsIs(table_name),)) #creates the table
+            print("--------")
+            cursor.execute(sql.format(table_name)) #creates the table
             print("table created")
-            cursor.close()
-            connection.commit() #commit the changes
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
-        finally:
-            if connection is not None:
-                connection.close()
-            
-def insertTable(table_name, data):
+                        
+def InsertTable(table_name, data):
     cursor = connection.cursor()
     sd = 0
-    if data[0] == "[":
-        keys = data[0].keys() #data must be predictable, will it always be a json?? prob not
-        columns = ",".join(data[0].keys())
-
-    else:
+    print("data is " + str(data))
+    print("----Insert into table----")
+    print(type(data))
+    try:
+        if data[0] == "[":
+            keys = data[0].keys() #data must be predictable, will it always be a json?? prob not
+            columns = ",".join(data[0].keys())
+            print("---detected multiple rows ----")
+            value_length = len(data[0])
+    except:
        keys = data.keys() #assuming data is dict
        columns = ",".join(data.keys())
        sd = 1
+       print("---detected single row insertion ----")
+       value_length = len(data)
     #values = ",".join("'" + v + "'" if type(v) is str else str(v) for v in data.values())
     #sql = "INSERT into %s %s"
     #Method that is faster than executemany apparently...
@@ -407,31 +499,84 @@ def insertTable(table_name, data):
     #args_str = ','.join(cur.mogrify("(%s,%s,%s,%s,%s,%s,%s,%s,%s)", x) for x in tup)
     #cur.execute("INSERT INTO table VALUES " + args_str) 
     #count how many columns for insertion...
-    qr = ','.join(['%s'] * len(data[0])) #adds multiple %s in a string
-
+    qr = ','.join(['%s'] * value_length) #adds multiple %s in a string
+    print(qr)
     try:
-        query = cursor.mogrify("INSERT into %s (%s) VALUES (%s);", (AsIs(table_name),AsIs(columns), AsIs(qr))).decode()
+        query = cursor.mogrify("INSERT into {} (%s) VALUES (%s);".format(table_name), (AsIs(columns), AsIs(qr))).decode()
+        print(query)
         vals = []
         if sd:
-            for x,y in data.items:
-                vals.append(tuple(y.values()))
-            cursor.execute(query, vals)   
+            for x in data.values():
+                vals.append((x,))
+                print(vals)
+            print(cursor.mogrify(query, vals)) # for Debug
+            cursor.execute(query,vals)
         else:    
             for x in data:
-                vals.append(tuple(x.values()))
+                vals.append(tuple(x).values())
             cursor.executemany(query, vals)
        # cursor.execute(sql, , AsIs(columns), AsIs(values))) #creates the table
         print("Values inserted")
-        cursor.close()
-        connection.commit() #commit the changes
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
-    finally:
-        if connection is not None:
-            connection.close()
+        
+def QueryData(table_name, sql):
+    cursor = connection.cursor()
+    try:
+        cursor.execute(sql.format(table_name))
+        keys = [desc[0] for desc in cursor.description]
+        values = cursor.fetchall()
+        if len(values) > 1:
+            ret = [dict(zip(keys, val)) for val in values]
+        else:
+            ret = dict(zip(keys,values))
+        #create dictionary for return statement
+#         out = {}
+#         for i in range(len(keys)):        Not a pythonic way to write the code
+#             out[keys(i)] = values(i)      This is how you would code in Java
+#         return out
+        return {"dict": ret, "keys": keys, "values": values}
+    except:
+        pass   
+import io
+import sys
+
+#query can be a table name or a full out table with specific values
+def fullTableToCSV(request):
+    query = str(request.POST['table'])
+    #query = "testtable"
+    print(query)
+    buffer = io.StringIO()
+    wr = csv.writer(buffer, quoting=csv.QUOTE_ALL)
     
+    sdo = sys.stdout
+    sqlQuery = """
+        COPY (table {0}) to STDOUT WITH CSV HEADER;
+        """.format(query)
+    print(sqlQuery)
+    try: 
+        cursor = connection.cursor()
+        #
+#         #opens file, and writes csv into it    
+#         with open('resultsfile', 'w') as f:
+#            cursor.copy_expert(sqlQuery, f)
+#         file = open('resultfile', 'r')
+#         print(file.read())
+        wr.writerows(cursor.copy_expert(sqlQuery, buffer))
+            
+    except:
+        pass 
+    buffer.seek(0) #Sets buffer back to position 0 to be read.
+    response = HttpResponse(buffer, content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=table.csv'
     
-def PostData(request): #Runs backend stuff
+    return response   
+
+
+
+
+    
+def PostData(request): #The method that researchers will use to post their data
     print("POST DATA is: " + str(request.POST))
     #get userid //deal with anonymous users later. but for now have a system for logged in users
     uID = request.user.id #get user ID
@@ -448,14 +593,46 @@ def PostData(request): #Runs backend stuff
     #create function to validate table name, for safety purposes
     #tableNameValidation(table_name)
     print(table_name)
-    createTable(table_name, query)
+    query = Experiment.objects.get(id=eID).query
+    CreateTable(table_name, query)
     #insert into table
     data = json.loads(data)
-    insertTable(table_name, data)
+    InsertTable(table_name, data)
+    #If user is not associated with experiment, then create that association
+    if(request.user.experiments.filter(id=eID)):
+        print("user is already associated with experiment")
+    else:
+        request.user.experiments.add(Experiment.objects.get(id=eID))
+        request.user.save() 
+    messages.success(self.request, 'Trial completed')
     
     return HttpResponse(a)
     
+import csv
 
+from django.utils.six.moves import range
+from django.http import StreamingHttpResponse
+
+class Echo(object):
+    """An object that implements just the write method of the file-like
+    interface.
+    """
+    def write(self, value):
+        """Write the value by returning it, instead of storing in a buffer."""
+        return value
+
+def some_streaming_csv_view(request):
+    """A view that streams a large CSV file."""
+    # Generate a sequence of rows. The range is based on the maximum number of
+    # rows that can be handled by a single sheet in most spreadsheet
+    # applications.
+    rows = (["Row {}".format(idx), str(idx)] for idx in range(65536))
+    pseudo_buffer = Echo()
+    writer = csv.writer(pseudo_buffer)
+    response = StreamingHttpResponse((writer.writerow(row) for row in rows),
+                                     content_type="text/csv")
+    response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
+    return response
 
 
 
