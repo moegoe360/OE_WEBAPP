@@ -10,8 +10,6 @@ from django.conf import settings
 def experiment_directory_path(instance, filename):
       """ Returns the directory path to the experiment folder"""
       return os.path.join(instance.experiment.home_directory, "{0}".format(filename))
-
-
     
 class Experiment(models.Model):
      """p
@@ -79,12 +77,23 @@ def display_text_file(self):
     self.open() # reset the pointer of file, needs if you need to read file more than once, in a request.
     return self.read().replace('\n', '<br>')
 
+
+# The reason for including a trial class is to better handle the anonymous users, and maybe regular users as well.
+# Every experiment shall hold the table name
 class Trial(models.Model):
+    anon_user = models.CharField(null=False, max_length=50, blank=False)
     experiment = models.ForeignKey(Experiment) 
-    participant = models.ForeignKey(settings.AUTH_USER_MODEL)
-    trialNumber = models.PositiveIntegerField()
+    #participant = models.ForeignKey(settings.AUTH_USER_MODEL)
+    table_name = models.CharField(null=False, max_length=50, blank=False) #is 50 too big?
+    trial_number = models.PositiveIntegerField(default=0)
     date_of_trial = models.DateTimeField(_('date uploaded'), default=timezone.now) 
+    
+    class Meta():
+        index_together = [['table_name']]
    
+    def save(self, *args, **kwargs):
+        self.trial_number = self.trial_number + 1
+        return super(Trial, self).save(*args, **kwargs)
     
 # class Data(models.Model):
 #     trial = models.ForeignKey(Trial) 

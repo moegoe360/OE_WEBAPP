@@ -11,12 +11,13 @@
 		<p>There are no files, please upload a file</p>
 		<p>Upload a file?</p>
 	{% endif %}
-
+	<div style="padding:15px;">
+	
 		<form action="" method="post" enctype="multipart/form-data">
 		{% csrf_token %}
     	{% bootstrap_form form %}
 		<button type="submit" name="upload_file" class="btn btn-default bt-sm"><span class="glyphicon glyphicon-plus"></span></button>	
-
+</div>
 		</form>		
 			{% if attachments %}
 				<div class="container">
@@ -25,6 +26,7 @@
 						<thead>
 						<tr>
 							<th>File Name</th>
+							<th> Delete </th>
 						</tr>
 						</thead>
 						<tbody>

@@ -8,7 +8,7 @@ from account.choices import *
 from experiment.models import Experiment
 from .validator import UnicodeUsernameValidator
 from django.utils import timezone
-
+from django.core.exceptions import ValidationError
 #from django.forms import extras
 #from django.forms.widgets import SelectDateWidget
 
@@ -40,9 +40,12 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_researcher', False)
         return self._create_user(username, email, password, **extra_fields)
     
-    
+    def create_anon_user(self, username=None, email=None, password=None, **extra_fields):
+        pass
+
 class User(AbstractBaseUser, PermissionsMixin):
      """
+     #doesnt use UUID, had to be changed to work with DB
      The user model that is created which inherits the AbstractBaseUser model of Django. Uses UUID as id, and email must be unique, and is optional.
      """
      username_validator = UnicodeUsernameValidator
@@ -125,8 +128,16 @@ class Profile(models.Model):
     def __str__(self):
         return '%s profile includes: age: %s, dateofBirth: %s'.format(self.user.username, self.user.age, self.user.date_of_birth)
 
+class AnonUserCounter(models.Model):    
+    """
+        A simple counter that attaches to anon user
+    """
+    counter = models.IntegerField(blank=False, null=False)
     
-   
+    def save(self, *args, **kwargs):
+        if (AnonUserCounter.objects.exists() and not self.pk):
+            raise ValidationError('There can be only one AnonUserCounter instance')
+        return super(AnonUserCounter, self).save(*args, **kwargs)
 #No need to produce another class class called researcher or Participant because you can simply create a 
 #boolean that differentiates each object
     

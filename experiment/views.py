@@ -4,7 +4,6 @@ from django.views.generic import (View, CreateView, UpdateView, DeleteView, Deta
 from .models import *
 from .forms import *
 from django.shortcuts import get_object_or_404
-from OE_Platform.settings import MEDIA_ROOT
 from OE_Platform.mixins import AjaxableResponseMixin
 from django.views.generic.base import TemplateResponseMixin
 from django.views.generic.edit import FormMixin, BaseCreateView
@@ -26,13 +25,14 @@ import psycopg2
 from psycopg2.extensions import AsIs
 from django.db import connection
 from django.utils.text import slugify
-
+import csv
+from django.db.models import F
        
 def experiment_create_directory_path(user, experiment):
-     # folder will be created on experiment creation media/uploads/researcher_<id>/<experiment>/
-     dr = os.path.join(user.home_directory, experiment.name) 
-     experiment.home_directory = dr
-     os.mkdir(os.path.join(MEDIA_ROOT, dr))
+    # folder will be created on experiment creation media/uploads/researcher_<id>/<experiment>/
+    dr = os.path.join(user.home_directory, experiment.name) 
+    experiment.home_directory = dr
+    os.mkdir(os.path.join(MEDIA_ROOT, dr))
      
 def belongsToResearcher(researcher, expID):
     """
@@ -157,7 +157,10 @@ class ExperimentDetailView(DetailView):
         else:
             return HttpResponse(Http404("You are not a researcher or experiment does not belong to you"))
 
-from account.models import User        
+def getAnonList(eID):
+    return eID
+from account.models import User   
+     
 class ExperimentUserListView(ListView):
     """
         ListView that displays all users that completed the experiment
@@ -174,9 +177,12 @@ class ExperimentUserListView(ListView):
             return super(ExperimentUserListView, self).dispatch(*args, **kwargs)
         else:
             return HttpResponse(Http404("You are not a researcher or experiment does not belong to you"))    
-#     def get_context_data(self, **kwargs):
-#         context = super(ExperimentUserListView, self).get_context_data(**kwargs)
-#         return context   
+       
+        #Must also get anonymous users...how? 
+    def get_context_data(self, **kwargs):
+        context = super(ExperimentUserListView, self).get_context_data(**kwargs)
+        context['anon_list'] = Trial.objects.filter(experiment=self.kwargs.get('epk', ''))
+        return context   
 
 class ExperimentUserQueryView(CSVResponseMixin, TemplateView):
     """
@@ -403,7 +409,7 @@ class ExperimentDeleteView(DeleteView):
         @method_decorator(login_required)
         def dispatch(self, *args, **kwargs):
             if self.request.user.is_researcher and belongsToResearcher(self.request.user, DetailView.get_object(self).id):
-                 return super(ExperimentDeleteView, self).dispatch(*args, **kwargs)
+                return super(ExperimentDeleteView, self).dispatch(*args, **kwargs)
             else:
                 return HttpResponse(Http404("You are not a researcher or experiment does not belong to you"))
             
@@ -418,7 +424,15 @@ class ExperimentDeleteView(DeleteView):
             obj.delete()
             messages.success(self.request, 'Experiment deleted successfully')
             return HttpResponseRedirect(reverse('experiment:exp_list'))
-                 
+
+from account.models import AnonUserCounter
+
+def GetNewAnonID():
+    anon = AnonUserCounter.objects.get(id=1)
+    aID = anon.counter
+    anon.update(counter=F('counter') + 1)
+    return aID
+                
 class ExperimentPublicListView(ListView):
     """
         Using Django's generic ListView to display a list of the experiments that will be displayed to all users. Renders experiment_list_public.html.
@@ -426,8 +440,30 @@ class ExperimentPublicListView(ListView):
     context_object_name = 'experiments'
     model = Experiment
     template_name = "experiment/experiment_list_public.html"
-     
-     
+   
+    def dispatch(self, *args, **kwargs):
+        if self.request.user.id:
+             return super(ExperimentPublicListView, self).dispatch(*args, **kwargs)
+        else:
+            print("user is anon")
+            self.request.session.set_test_cookie()
+            if (self.request.session.test_cookie_worked()):
+                print("cookie worked!")
+                self.request.session.delete_test_cookie()
+                #Check if anon session exists:
+                try:
+                    if (self.request.session['anon_id']):
+                        print("anon_id exist")
+                        print(self.request.session['anon_id'])
+                except KeyError:
+                #Create a random variable to store anon user
+                    print("anon_id doesnt exist")
+                    self.request.session['anon_id'] = "A" + str(GetNewAnonID())
+                
+            else:
+                print("Cookie did not work, client needs to enable cookies")
+            return super(ExperimentPublicListView, self).dispatch(*args, **kwargs)
+       
 class ExperimentPublicTest(DetailView):
     """
         Using Django's generic DetailView which displays basic experiment detail and will render experiment.html
@@ -447,6 +483,21 @@ class ExperimentPublicTest(DetailView):
        # htmlFile = 
         
         return context 
+    
+    def dispatch(self, *args, **kwargs):
+        if self.request.user.id:
+            return super(ExperimentPublicTest, self).dispatch(*args, **kwargs)    
+        else:
+            try:
+                if (self.request.session['anon_id']):
+                    print("anon_id exist: " + self.request.session['anon_id'])
+                    print("ip is " + str(self.request.META.get('REMOTE_ADDR')))
+                    return super(ExperimentPublicTest, self).dispatch(*args, **kwargs)  
+            except KeyError:
+            #Create a random variable to store anon user
+                #is it possible to get here with no sessional user? most likely...how to prevent?
+                 print("anon_id doesnt exist...")
+                 return HttpResponse(Http404("There was a fatal error, we apologize for the inconvenience"))
     
 def TableExist(table_name):
     cursor = connection.cursor()
@@ -508,7 +559,7 @@ def InsertTable(table_name, data):
         if sd:
             for x in data.values():
                 vals.append((x,))
-                print(vals)
+                
             print(cursor.mogrify(query, vals)) # for Debug
             cursor.execute(query,vals)
         else:    
@@ -516,6 +567,7 @@ def InsertTable(table_name, data):
                 vals.append(tuple(x).values())
             cursor.executemany(query, vals)
        # cursor.execute(sql, , AsIs(columns), AsIs(values))) #creates the table
+        print(vals)
         print("Values inserted")
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
@@ -571,25 +623,66 @@ def fullTableToCSV(request):
     response['Content-Disposition'] = 'attachment; filename=table.csv'
     
     return response   
+#from ipware import get_client_ip
 
-
-
-
-    
 def PostData(request): #The method that researchers will use to post their data
     print("POST DATA is: " + str(request.POST))
     #get userid //deal with anonymous users later. but for now have a system for logged in users
     uID = request.user.id #get user ID
     print("userID: " + str(uID))
-    #get experiment id
+
     eID = request.POST['expID'] #get experiment ID
     print("expID: " + str(eID))
+   
     a = request.POST
     data = request.POST['data']
     print("data is: " + str(data))
-    # Data received...
+    
     #table name will be... exp+expID_userID...anonymous users have to have their own ID
     table_name = "exp" + str(eID) + "_" + str(uID) #we can adjust the table name to account for different schema...do we need it?
+   
+    #What to do if USERID is NONE...#anon user created based on IP
+        #UPON experiment attempt a cookie of their userID should be saved
+    isAnon = (not uID)
+    if(isAnon):
+        print("user is anon")
+        # get IP of the user, which we may track for future use.
+#         client_ip, is_routable = get_client_ip(request)
+#        # print(request.session.test_cookie_worked())
+#         request.session.set_test_cookie()
+#         if (request.session.test_cookie_worked()):
+#             print("cookie worked!")
+#             request.session.delete_test_cookie()
+#         if client_ip is None:
+#             print("Unable to get IP")
+#             #if ip is none, we can try to work with sessions
+#         else:
+#             print(client_ip)
+#             if is_routable:
+#                 print("We got the client IP: " + str(client_ip))
+#             else:
+#                 print("Client's IP is private")
+#                 #if ip is private, we can try to work with sessions
+        #must save data based on newly created anon session 
+        uID = request.session['anon_id'] #The sessional ID
+        table_name = "exp" + str(eID) + "_" + str(uID)
+        trial = Trial.objects.filter(table_name=table_name)
+        if(not trial):
+            print("Trial Doesn't Exist")
+            #create the trial 
+            trial = Trial(table_name = table_name, experiment=Experiment.objects.get(id=eID, anon_user = uID))
+            trial.save() #Trial associated with experiment
+        else:
+            trial.update(trial_number = F('trial_number') + 1)
+    else: #Authenticated user will have the experiment linked with him
+    #If user is not associated with experiment, then create that association
+
+        if(request.user.experiments.filter(id=eID)):
+            print("user is already associated with experiment")
+        else:
+            request.user.experiments.add(Experiment.objects.get(id=eID))
+            request.user.save(update_fields=['experiments']) #Using update_fields is more efficient, updates 1 variables vs the whole model
+    
     #create function to validate table name, for safety purposes
     #tableNameValidation(table_name)
     print(table_name)
@@ -598,41 +691,39 @@ def PostData(request): #The method that researchers will use to post their data
     #insert into table
     data = json.loads(data)
     InsertTable(table_name, data)
-    #If user is not associated with experiment, then create that association
-    if(request.user.experiments.filter(id=eID)):
-        print("user is already associated with experiment")
-    else:
-        request.user.experiments.add(Experiment.objects.get(id=eID))
-        request.user.save() 
-    messages.success(self.request, 'Trial completed')
+       
+    messages.success(request, 'Trial completed')
     
     return HttpResponse(a)
-    
-import csv
 
-from django.utils.six.moves import range
-from django.http import StreamingHttpResponse
 
-class Echo(object):
-    """An object that implements just the write method of the file-like
-    interface.
-    """
-    def write(self, value):
-        """Write the value by returning it, instead of storing in a buffer."""
-        return value
 
-def some_streaming_csv_view(request):
-    """A view that streams a large CSV file."""
-    # Generate a sequence of rows. The range is based on the maximum number of
-    # rows that can be handled by a single sheet in most spreadsheet
-    # applications.
-    rows = (["Row {}".format(idx), str(idx)] for idx in range(65536))
-    pseudo_buffer = Echo()
-    writer = csv.writer(pseudo_buffer)
-    response = StreamingHttpResponse((writer.writerow(row) for row in rows),
-                                     content_type="text/csv")
-    response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
-    return response
+
+# import csv
+
+# from django.utils.six.moves import range
+# from django.http import StreamingHttpResponse
+
+# class Echo(object):
+#     """An object that implements just the write method of the file-like
+#     interface.
+#     """
+#     def write(self, value):
+#         """Write the value by returning it, instead of storing in a buffer."""
+#         return value
+
+# def some_streaming_csv_view(request):
+#     """A view that streams a large CSV file."""
+#     # Generate a sequence of rows. The range is based on the maximum number of
+#     # rows that can be handled by a single sheet in most spreadsheet
+#     # applications.
+#     rows = (["Row {}".format(idx), str(idx)] for idx in range(65536))
+#     pseudo_buffer = Echo()
+#     writer = csv.writer(pseudo_buffer)
+#     response = StreamingHttpResponse((writer.writerow(row) for row in rows),
+#                                      content_type="text/csv")
+#     response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
+#     return response
 
 
 

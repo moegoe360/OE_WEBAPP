@@ -6,11 +6,11 @@
 {% block javascript %}<script type="text/javascript" src="{% static 'js/table.js' %}"></script>{% endblock %}
 <div class="container">
 	<h1>Participant List</h1>
-	{% if not object_list %}
+	{% if not object_list or not anon_list %}
 		<p>There are no particpants who have completed the experiment</p>
 
 	{% endif %}
-			{% if object_list %}
+			{% if object_list or anon_list %}
 			
 				<div class="container">
 					  <table id='tb1' class="table table-bordered table-hover">
@@ -27,6 +27,13 @@
 							<td >{{ User.username }}</td>
 							<td >{% if User.is_participant %} Participant {% else %} Researcher {% endif %}</td>
 							<td >{{ User.email }}</td>
+						</tr>
+						{% endfor%}
+						{% for User in anon_list %}
+						<tr onclick="location.href='{{ User.anon_user }}';">
+							<td >{{ User.anon_user }}</td>
+							<td >Anonymous</td>
+							<td ></td>
 						</tr>
 						{% endfor%}
 						</tbody>

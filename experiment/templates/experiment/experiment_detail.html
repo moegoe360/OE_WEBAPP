@@ -46,8 +46,8 @@
   </table>
   
 	<div class="container">
-	<p><a href="{% url 'experiment:file_list' experiment.id %}" class="btn btn-primary">Upload/Delete Files</a></p>
-	<p><a href="{% url 'experiment:exp_user_list' experiment.id %}" class="btn btn-primary">Participant View</a></p>
+	<a href="{% url 'experiment:file_list' experiment.id %}" class="btn btn-primary">Upload/Delete Files</a>
+	<a href="{% url 'experiment:exp_user_list' experiment.id %}" class="btn btn-primary">View Participant Data</a>
 	
 	</div>
 </div>
