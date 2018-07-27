@@ -3,42 +3,40 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.core.urlresolvers import reverse
 import os
-from OE_Platform.settings import MEDIA_ROOT
-from django.conf import settings
 
 
 def experiment_directory_path(instance, filename):
-      """ Returns the directory path to the experiment folder"""
-      return os.path.join(instance.experiment.home_directory, "{0}".format(filename))
+    """ Returns the directory path to the experiment folder"""
+    return os.path.join(instance.experiment.home_directory, "{0}".format(filename))
     
 class Experiment(models.Model):
-     """p
-        Builds the experiment model that will store javascript code to display to their corresponding experiment page.
-     """
-     date_uploaded = models.DateTimeField(_('date uploaded'), default=timezone.now) 
-     name = models.CharField(_("Experiment Name"), unique=True, max_length=100, null=False, blank = False)
-    # #file = models.FileField(upload_to=user_directory_path, null=True, blank=True) #May not need this...
-     js_Code = models.TextField(_("JS Experiment Code"), blank=True, null=True)
-     js_Code_Header = models.TextField(_("JS Header Code"), blank=True, null=True) # The JS code entered in the header of the HTML
-     is_Published = models.BooleanField(_("Published"), default=False)
-     description = models.TextField(max_length=500, blank=True, null=True)
-     created_By = models.CharField(max_length=50)
-     home_directory = models.CharField(max_length=150)
-     query = models.CharField(max_length=150)
-     # in a way having the table creation is redundant because what was needed is 
-     # to build tables based on final experiment, tables may be created differently
-     # from the beginning of the experiment to end...
-     # in a way I could have just initialized a model when exp. is created.
+    """
+    Builds the experiment model that will store javascript code to display to their corresponding experiment page.
+    """
+    date_uploaded = models.DateTimeField(_('date uploaded'), default=timezone.now) 
+    name = models.CharField(_("Experiment Name"), unique=True, max_length=100, null=False, blank = False)
+# #file = models.FileField(upload_to=user_directory_path, null=True, blank=True) #May not need this...
+    js_Code = models.TextField(_("JS Experiment Code"), blank=True, null=True)
+    js_Code_Header = models.TextField(_("JS Header Code"), blank=True, null=True) # The JS code entered in the header of the HTML
+    is_Published = models.BooleanField(_("Published"), default=False)
+    description = models.TextField(max_length=500, blank=True, null=True)
+    created_By = models.CharField(max_length=50)
+    home_directory = models.CharField(max_length=150)
+    query = models.CharField(max_length=1000)
+    # in a way having the table creation is redundant because what was needed is 
+    # to build tables based on final experiment, tables may be created differently
+    # from the beginning of the experiment to end...
+    # in a way I could have just initialized a model when exp. is created.
      
      
-     def __str__(self):
-         """
-             Returns the name of the experiment in string
-         """    
-         return self.name
-     
-     def get_absolute_url(self):
-         return reverse("experiment:exp_detail", kwargs={'pk':self.pk})
+    def __str__(self):
+        """
+            Returns the name of the experiment in string
+        """    
+        return self.name
+    
+    def get_absolute_url(self):
+        return reverse("experiment:exp_detail", kwargs={'pk':self.pk})
      
 # class Question(models.Model):
 #     """

@@ -6,7 +6,7 @@
 {% block javascript %}<script type="text/javascript" src="{% static 'js/table.js' %}"></script>{% endblock %}
 <div class="container">
 	<h1>Participant List</h1>
-	{% if not object_list or not anon_list %}
+	{% if not object_list and not anon_list %}
 		<p>There are no particpants who have completed the experiment</p>
 
 	{% endif %}

@@ -8,7 +8,7 @@ class UploadForm(forms.Form):
 class ExperimentForm(forms.ModelForm):
      class Meta:
         model = Experiment
-        fields = ('name', 'description')
+        fields = ('name', 'description', 'query')
         
      files =  MultiFileField(min_num=0, max_num=3, max_file_size=1024*1024*5, required=False)
 

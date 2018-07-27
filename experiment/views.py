@@ -1,13 +1,18 @@
-from django.shortcuts import render
-from django.views.generic import (View, CreateView, UpdateView, DeleteView, DetailView, ListView, TemplateView)
+#from django.shortcuts import render
+from django.views.generic import (CreateView, UpdateView, DeleteView, DetailView, ListView, TemplateView)
+#from django.urls import reverse
+# import io
+# import sys
 # Create your views here.
-from .models import *
-from .forms import *
-from django.shortcuts import get_object_or_404
-from OE_Platform.mixins import AjaxableResponseMixin
-from django.views.generic.base import TemplateResponseMixin
-from django.views.generic.edit import FormMixin, BaseCreateView
-from django.views.generic.list import BaseListView
+# from .models import *
+# from .forms import *
+# from django.shortcuts import get_object_or_404
+# from OE_Platform.mixins import AjaxableResponseMixin
+# from django.views.generic.base import TemplateResponseMixin
+# from django.views.generic.edit import FormMixin, BaseCreateView
+# from django.views.generic.list import BaseListView
+from .models import Experiment, Attachment, Trial
+from .forms import ExperimentForm, ExperimentFormBasic
 from django.http.response import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -19,12 +24,13 @@ from django.utils.decorators import method_decorator
 import os
 import json
 from OE_Platform.settings import MEDIA_ROOT
+from account.models import AnonUserCounter
 
-from psycopg2 import sql
+#from psycopg2 import sql
 import psycopg2
 from psycopg2.extensions import AsIs
 from django.db import connection
-from django.utils.text import slugify
+#from django.utils.text import slugify
 import csv
 from django.db.models import F
        
@@ -44,7 +50,7 @@ def belongsToResearcher(researcher, expID):
     except:
         return False
     
-def multipleFilesUpload(form, exp, instance):
+def multipleFilesUpload(form, exp): #removed instance
     for each in form.cleaned_data['files']:
         Attachment.objects.create(file=each, experiment=exp)
         
@@ -90,35 +96,35 @@ class CSVResponseMixin(object):
 #         else:
 #             return super(CSVResponseMixin, self).render_to_response(context, **response_kwargs)      
           
-class FormAndListView(BaseCreateView, BaseListView, TemplateResponseMixin):
-    def get(self, request, *args, **kwargs):
-        formView = BaseCreateView.get(self, request, *args, **kwargs)
-        listView = BaseListView.get(self, request, *args, **kwargs)
-        formData = formView.context_data['form']
-        listData = listView.context_data['object_list']
-        return render_to_response('textfrompdf/index.html', {'form' : formData, 'all_PDF' : listData}, context_instance=RequestContext(request))
+# class FormAndListView(BaseCreateView, BaseListView, TemplateResponseMixin):
+#     def get(self, request, *args, **kwargs):
+#         formView = BaseCreateView.get(self, request, *args, **kwargs)
+#         listView = BaseListView.get(self, request, *args, **kwargs)
+#         formData = formView.context_data['form']
+#         listData = listView.context_data['object_list']
+#         return render_to_response('textfrompdf/index.html', {'form' : formData, 'all_PDF' : listData}, context_instance=RequestContext(request))
     
-class FormListView(FormMixin, ListView):
-    """
-        Helps produce a form and list in one view
-    """
-    def get(self, request, *args, **kwargs):
-        # From ProcessFormMixin
-        form_class = self.get_form_class()
-        self.form = self.get_form(form_class)
+# class FormListView(FormMixin, ListView):
+#     """
+#         Helps produce a form and list in one view
+#     """
+#     def get(self, request, *args, **kwargs):
+#         # From ProcessFormMixin
+#         form_class = self.get_form_class()
+#         self.form = self.get_form(form_class)
 
-        # From BaseListView
-        self.object_list = self.get_queryset()
-        allow_empty = self.get_allow_empty()
-        if not allow_empty and len(self.object_list) == 0:
-            raise Http404(_(u"Empty list and '%(class_name)s.allow_empty' is False.")
-                          % {'class_name': self.__class__.__name__})
+#         # From BaseListView
+#         self.object_list = self.get_queryset()
+#         allow_empty = self.get_allow_empty()
+#         if not allow_empty and len(self.object_list) == 0:
+#             raise Http404(_(u"Empty list and '%(class_name)s.allow_empty' is False.")
+#                           % {'class_name': self.__class__.__name__})
 
-        context = self.get_context_data(object_list=self.object_list, form=self.form)
-        return self.render_to_response(context)
+#         context = self.get_context_data(object_list=self.object_list, form=self.form)
+#         return self.render_to_response(context)
 
-    def post(self, request, *args, **kwargs):
-        return self.get(request, *args, **kwargs)
+#     def post(self, request, *args, **kwargs):
+#         return self.get(request, *args, **kwargs)
     
 class ExperimentListView(ListView):
     """
@@ -166,9 +172,14 @@ class ExperimentUserListView(ListView):
         ListView that displays all users that completed the experiment
     """
     context_object_name = 'participant'
-    model = User
+    #model = User
+    #query_set = User.objects.filter(experiments=ExperimentUserListView.kwargs.get('epk', ''))
+
     template_name = 'Experiment/user_list.html'
     
+    def get_queryset(self):
+        return User.objects.filter(experiments=self.kwargs.get('epk', ''))
+
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         print("testing 1-2")
@@ -292,7 +303,7 @@ class ExperimentUpdateView(UpdateView):
         @method_decorator(login_required)
         def dispatch(self, *args, **kwargs):
             if self.request.user.is_researcher and belongsToResearcher(self.request.user, UpdateView.get_object(self).id):
-                 return super(ExperimentUpdateView, self).dispatch(*args, **kwargs)
+                return super(ExperimentUpdateView, self).dispatch(*args, **kwargs)
             else:
                 return HttpResponse(Http404("You are not a researcher or experiment does not belong to you"))
             
@@ -307,7 +318,7 @@ class FileDeleteView(DeleteView):
             context['epk'] = self.kwargs.get('epk', '')
             return context 
          
-        def delete(self, request, *args, **kwargs):
+        def delete(self, **kwargs):
             print("got deleted")
             obj = self.get_object()
             print(obj)
@@ -331,7 +342,7 @@ class FileListView(CreateView): #FormAndListView   FormListView
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         if self.request.user.is_researcher:
-             return super(FileListView, self).dispatch(*args, **kwargs)
+            return super(FileListView, self).dispatch(*args, **kwargs)
         else:
             return HttpResponse(Http404("You are not a researcher or file does not belong to you"))
 #     def get_queryset(self):
@@ -342,7 +353,7 @@ class FileListView(CreateView): #FormAndListView   FormListView
                 
                 form.instance.experiment = Experiment.objects.get(id=self.kwargs.get('epk', ''))
            
-           # user_form = forms.(data=request.POST)
+        # user_form = forms.(data=request.POST)
 #             for each in form.cleaned_data['file']:
 #                # Attachment.objects.create(file=each)
 #                 Attachment.objects.create(file=each, experiment=exp)
@@ -413,7 +424,7 @@ class ExperimentDeleteView(DeleteView):
             else:
                 return HttpResponse(Http404("You are not a researcher or experiment does not belong to you"))
             
-        def delete(self, request, *args, **kwargs):
+        def delete(self): # Removed the following: request, *args, **kwargs
             print("Experiment deleted")
             obj = self.get_object()
             a = obj.attachment_set.all()
@@ -425,12 +436,10 @@ class ExperimentDeleteView(DeleteView):
             messages.success(self.request, 'Experiment deleted successfully')
             return HttpResponseRedirect(reverse('experiment:exp_list'))
 
-from account.models import AnonUserCounter
-
 def GetNewAnonID():
     anon = AnonUserCounter.objects.get(id=1)
     aID = anon.counter
-    anon.update(counter=F('counter') + 1)
+    anon.counter = F('counter') + 1 #Before I used anon.counter.update()...which makes no sense, update() can only work with a query of objects, not a single one.
     return aID
                 
 class ExperimentPublicListView(ListView):
@@ -442,8 +451,9 @@ class ExperimentPublicListView(ListView):
     template_name = "experiment/experiment_list_public.html"
    
     def dispatch(self, *args, **kwargs):
+        # CHANGE CODE
         if self.request.user.id:
-             return super(ExperimentPublicListView, self).dispatch(*args, **kwargs)
+            return super(ExperimentPublicListView, self).dispatch(*args, **kwargs)
         else:
             print("user is anon")
             self.request.session.set_test_cookie()
@@ -479,8 +489,8 @@ class ExperimentPublicTest(DetailView):
 #         for x in attachments:
 #             if ('html' in x.filename()):
                 
-       # print([x for x in attachments if 'html' in x][0])
-       # htmlFile = 
+    # print([x for x in attachments if 'html' in x][0])
+    # htmlFile = 
         
         return context 
     
@@ -496,8 +506,8 @@ class ExperimentPublicTest(DetailView):
             except KeyError:
             #Create a random variable to store anon user
                 #is it possible to get here with no sessional user? most likely...how to prevent?
-                 print("anon_id doesnt exist...")
-                 return HttpResponse(Http404("There was a fatal error, we apologize for the inconvenience"))
+                print("anon_id doesnt exist...")
+                return HttpResponse(Http404("There was a fatal error, we apologize for the inconvenience"))
     
 def TableExist(table_name):
     cursor = connection.cursor()
@@ -528,21 +538,24 @@ def CreateTable(table_name, sql):
 def InsertTable(table_name, data):
     cursor = connection.cursor()
     sd = 0
-    print("data is " + str(data))
+    #print("data is " + str(data))
     print("----Insert into table----")
     print(type(data))
     try:
-        if data[0] == "[":
-            keys = data[0].keys() #data must be predictable, will it always be a json?? prob not
+        print("CheckA")
+        print(data[0])
+        if data[0] == "[" or isinstance(data, list):
+            #keys = data[0].keys() #data must be predictable, will it always be a json?? prob not
             columns = ",".join(data[0].keys())
             print("---detected multiple rows ----")
             value_length = len(data[0])
     except:
-       keys = data.keys() #assuming data is dict
-       columns = ",".join(data.keys())
-       sd = 1
-       print("---detected single row insertion ----")
-       value_length = len(data)
+        print("CheckB")
+        #keys = data.keys() #assuming data is dict
+        columns = ",".join(data.keys())
+        sd = 1
+        print("---detected single row insertion ----")
+        value_length = len(data)
     #values = ",".join("'" + v + "'" if type(v) is str else str(v) for v in data.values())
     #sql = "INSERT into %s %s"
     #Method that is faster than executemany apparently...
@@ -564,13 +577,16 @@ def InsertTable(table_name, data):
             cursor.execute(query,vals)
         else:    
             for x in data:
-                vals.append(tuple(x).values())
+                print(tuple(x))
+                vals.append(tuple(x.values()))
+            #cursor.mogrify(query, vals)
             cursor.executemany(query, vals)
-       # cursor.execute(sql, , AsIs(columns), AsIs(values))) #creates the table
+    # cursor.execute(sql, , AsIs(columns), AsIs(values))) #creates the table
         print(vals)
         print("Values inserted")
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
+        #print(data)
         
 def QueryData(table_name, sql):
     cursor = connection.cursor()
@@ -590,18 +606,16 @@ def QueryData(table_name, sql):
         return {"dict": ret, "keys": keys, "values": values}
     except:
         pass   
-import io
-import sys
 
 #query can be a table name or a full out table with specific values
 def fullTableToCSV(request):
     query = str(request.POST['table'])
     #query = "testtable"
     print(query)
-    buffer = io.StringIO()
+    #buffer = io.StringIO()
     wr = csv.writer(buffer, quoting=csv.QUOTE_ALL)
     
-    sdo = sys.stdout
+    #sdo = sys.stdout
     sqlQuery = """
         COPY (table {0}) to STDOUT WITH CSV HEADER;
         """.format(query)
@@ -626,7 +640,7 @@ def fullTableToCSV(request):
 #from ipware import get_client_ip
 
 def PostData(request): #The method that researchers will use to post their data
-    print("POST DATA is: " + str(request.POST))
+    #print("POST DATA is: " + str(request.POST))
     #get userid //deal with anonymous users later. but for now have a system for logged in users
     uID = request.user.id #get user ID
     print("userID: " + str(uID))
@@ -636,7 +650,7 @@ def PostData(request): #The method that researchers will use to post their data
    
     a = request.POST
     data = request.POST['data']
-    print("data is: " + str(data))
+    #print("data is: " + str(data))
     
     #table name will be... exp+expID_userID...anonymous users have to have their own ID
     table_name = "exp" + str(eID) + "_" + str(uID) #we can adjust the table name to account for different schema...do we need it?
@@ -667,11 +681,14 @@ def PostData(request): #The method that researchers will use to post their data
         uID = request.session['anon_id'] #The sessional ID
         table_name = "exp" + str(eID) + "_" + str(uID)
         trial = Trial.objects.filter(table_name=table_name)
+        print("tablename should be:" + str(table_name))
         if(not trial):
             print("Trial Doesn't Exist")
             #create the trial 
-            trial = Trial(table_name = table_name, experiment=Experiment.objects.get(id=eID, anon_user = uID))
+            trial = Trial(table_name = table_name, experiment=Experiment.objects.get(id=eID), anon_user = uID)
+            print("CheckPointANON")
             trial.save() #Trial associated with experiment
+            print("successful trial save")
         else:
             trial.update(trial_number = F('trial_number') + 1)
     else: #Authenticated user will have the experiment linked with him

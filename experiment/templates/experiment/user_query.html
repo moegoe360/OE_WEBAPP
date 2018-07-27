@@ -6,6 +6,7 @@
 
 
 <div class="container">
+{% if data %}
 <div>
 	<form action="{% url 'experiment:csv' %}" method="post" enctype="multipart/form-data">
 	{% csrf_token %}
@@ -31,5 +32,9 @@
 		{% endfor %}
 		</tbody>
 	</table>
+{% else %}
+<p>No trials have been completed by user</p>
+{% endif %}
+
 </div>
 {% endblock %}
