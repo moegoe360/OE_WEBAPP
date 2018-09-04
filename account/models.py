@@ -44,36 +44,36 @@ class UserManager(BaseUserManager):
         pass
 
 class User(AbstractBaseUser, PermissionsMixin):
-     """
-     #doesnt use UUID, had to be changed to work with DB
-     The user model that is created which inherits the AbstractBaseUser model of Django. Uses UUID as id, and email must be unique, and is optional.
-     """
-     username_validator = UnicodeUsernameValidator
-     
-     username = models.CharField(
-        _('username'),
-        max_length=150,
-        unique=True,
-        help_text=_('Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'),
-        validators=[username_validator],
-        error_messages={
-            'unique': _("A user with that username already exists."),
-        },
-     )
-     
-     #id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-     email = models.EmailField(_('email address'), max_length=254, unique=True, null=True, blank=True)     
-     is_participant = models.BooleanField(blank=True, default = False)
-     is_researcher = models.BooleanField(blank=True, default = False)
-     experiments = models.ManyToManyField(Experiment) #Create many to many relationship with User will only be relevant to researchers
-     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
-     home_directory = models.CharField(max_length=150)
-     objects = UserManager()
-     
-     EMAIL_FIELD = 'email'
-     USERNAME_FIELD = 'username'
+    """
+    #doesnt use UUID, had to be changed to work with DB
+    The user model that is created which inherits the AbstractBaseUser model of Django. Uses UUID as id, and email must be unique, and is optional.
+    """
+    username_validator = UnicodeUsernameValidator
     
-     is_active = models.BooleanField(
+    username = models.CharField(
+    _('username'),
+    max_length=150,
+    unique=True,
+    help_text=_('Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'),
+    validators=[username_validator],
+    error_messages={
+        'unique': _("A user with that username already exists."),
+    },
+    )
+     
+    #id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    email = models.EmailField(_('email address'), max_length=254, unique=True, null=True, blank=True)     
+    is_participant = models.BooleanField(blank=True, default = False)
+    is_researcher = models.BooleanField(blank=True, default = False)
+    experiments = models.ManyToManyField(Experiment) #Create many to many relationship with User will only be relevant to researchers
+    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+    home_directory = models.CharField(max_length=150)
+    objects = UserManager()
+    
+    EMAIL_FIELD = 'email'
+    USERNAME_FIELD = 'username'
+
+    is_active = models.BooleanField(
         _('active'),
         default=True,
         help_text=_(
@@ -82,14 +82,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         ),
      )          
      
-     class Meta:
+    class Meta:
         verbose_name = _('user')
         verbose_name_plural = _('users')
         #had abstract = True
-     def __str__(self):
-         return self.username
+    def __str__(self):
+        return self.username
      
-     def clean(self):
+    def clean(self):
         """
         Clean up blank fields to null
         """
@@ -99,7 +99,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         if self.email == "":
             self.email = None
     
-     def email_user(self, subject, message, from_email=None, **kwargs):
+    def email_user(self, subject, message, from_email=None, **kwargs):
         """Send an email to this user."""
         send_mail(subject, message, from_email, [self.email], **kwargs)    
 

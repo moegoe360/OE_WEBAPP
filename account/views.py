@@ -22,60 +22,60 @@ from OE_Platform.settings import MEDIA_ROOT
 
   
 def researcher_create_directory_path(instance): #May not need this method
-     # file will be uploaded to /uploads/researcher_<id>/<experiment>/
-     hdr = "uploads/researcher_{0}".format(instance.username)
-     adr = os.path.join(MEDIA_ROOT, hdr)
-     instance.home_directory = hdr 
-     os.mkdir(adr)          
+    # file will be uploaded to /uploads/researcher_<id>/<experiment>/
+    hdr = "uploads/researcher_{0}".format(instance.username)
+    adr = os.path.join(MEDIA_ROOT, hdr)
+    instance.home_directory = hdr 
+    os.mkdir(adr)          
  
 class RegisterAccount(generic.CreateView):
-     """
-         view method that registers a user if registration formed is filled out. Saves user as a participant or researcher depending on which url path is accessed.
-     """
-     form_class = forms.UserCreateForm
-     success_url = reverse_lazy('account:register_done')
-     template_name = 'account/registration/register.html'
-      
-     def form_valid(self, form):
-         #Create a new user object but avoid saving it yet
-         new_user = form.save(commit=False)
-         #Set the chosen password_change
-         new_user.set_password(form.cleaned_data['password1']) #set_password handles encryption for safety purposes
-          #creates participant or researcher based on URL
-         if self.request.path == "/account/register/":
-                 #Identify user with participant
-                 new_user.is_participant = True
-                 #Save the User object
-                 new_user.save()
-                 #Create the user profile
-                 profile = Profile.objects.create(user=new_user)
-                 return super(RegisterAccount, self).form_valid(form)
-         elif self.request.path == "/account/researcher/register/":
-                 new_user.is_researcher = True
-                 researcher_create_directory_path(new_user)
-                 new_user.save()
-                 return super(RegisterAccount, self).form_valid(form)
+    """
+        view method that registers a user if registration formed is filled out. Saves user as a participant or researcher depending on which url path is accessed.
+    """
+    form_class = forms.UserCreateForm
+    success_url = reverse_lazy('account:register_done')
+    template_name = 'account/registration/register.html'
+    
+    def form_valid(self, form):
+        #Create a new user object but avoid saving it yet
+        new_user = form.save(commit=False)
+        #Set the chosen password_change
+        new_user.set_password(form.cleaned_data['password1']) #set_password handles encryption for safety purposes
+        #creates participant or researcher based on URL
+        if self.request.path == "/account/register/":
+                #Identify user with participant
+                new_user.is_participant = True
+                #Save the User object
+                new_user.save()
+                #Create the user profile
+                profile = Profile.objects.create(user=new_user)
+                return super(RegisterAccount, self).form_valid(form)
+        elif self.request.path == "/account/researcher/register/":
+                new_user.is_researcher = True
+                researcher_create_directory_path(new_user)
+                new_user.save()
+                return super(RegisterAccount, self).form_valid(form)
 
 class RegisterAccountDoneView(generic.TemplateView):
-     """
-        A template view that displays register_done.html
-     """
-     template_name = 'account/registration/register_done.html'
+    """
+    A template view that displays register_done.html
+    """
+    template_name = 'account/registration/register_done.html'
  
 
 
 class LoggedOutView(generic.TemplateView):
-     """
-         A template view that displays logged_out.html
-     """
-     template_name = 'account/logged_out.html'
+    """
+        A template view that displays logged_out.html
+    """
+    template_name = 'account/logged_out.html'
      
 @login_required
 def dashboard(request): 
-     """
-         A view method that displays dashboard.html when user is logged in and passes a 'section' variable as 'dashboard'
-     """
-     return render(request, 'account/dashboard.html', {'section': 'dashboard'})
+    """
+        A view method that displays dashboard.html when user is logged in and passes a 'section' variable as 'dashboard'
+    """
+    return render(request, 'account/dashboard.html', {'section': 'dashboard'})
  
 @login_required
 def edit(request):
@@ -96,10 +96,10 @@ def edit(request):
             if (request.user.is_participant):
                 profile_form.save()
             messages.success(request, 'Profile updated successfuly')
-         #if not user_form.data['date_of_birth']:
-          #      born = user_form.data['date_of_birth']
-           #     today = datetime.datetime.now()
-            #    get_user(request).Profile.age = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+        #if not user_form.data['date_of_birth']:
+        #      born = user_form.data['date_of_birth']
+        #     today = datetime.datetime.now()
+        #    get_user(request).Profile.age = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
           
         else:
             messages.error(request, 'Error updating your profile')
@@ -120,13 +120,13 @@ def accountRemoval(request):
         A view method that allows the user to completely remove their account.
     """
     if 'remove_profile' in request.POST:
-       # messages.info(request, 'You clicked button 1')
-       pass
+    # messages.info(request, 'You clicked button 1')
+        pass
     elif 'remove_all' in request.POST:
-       # messages.info(request, 'You clicked button 2')
-       instance = get_user(request)
-       instance.delete()
-       return render(request, 'account/logged_out.html')
+    # messages.info(request, 'You clicked button 2')
+        instance = get_user(request)
+        instance.delete()
+    return render(request, 'account/logged_out.html')
          
     return render(request, 'account/account_remove.html')
  
